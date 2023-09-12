@@ -84,3 +84,4 @@ repos:
         language: system
         types: [python]
       {%- endif %}
+exclude: 'tests/tests_data/.*'
