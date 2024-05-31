@@ -1,7 +1,11 @@
 {
-  "package_name": "My Package",
-  "package_description": "A Python package that ...",
-  "package_url": "https://github.com/user/my-package",
+  "project_type": [
+    "package",
+    "app"
+  ],
+  "project_name": "{% if cookiecutter.project_type == 'app' %}My App{% else %}My Package{% endif %}",
+  "project_description": "A Python {{ cookiecutter.project_type }} that reticulates splines.",
+  "project_url": "https://github.com/user/my-{{ cookiecutter.project_type }}",
   "author_name": "John Smith",
   "author_email": "john@example.com",
   "python_version": "3.11",
@@ -21,5 +25,4 @@
   "teamwork_uri": "",
   "__package_name_kebab_case": "{{ cookiecutter.package_name|slugify }}",
   "__package_name_snake_case": "{{ cookiecutter.package_name|slugify(separator='_') }}"
-
 }
