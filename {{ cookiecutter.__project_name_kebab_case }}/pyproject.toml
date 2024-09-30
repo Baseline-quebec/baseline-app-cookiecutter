@@ -99,6 +99,7 @@ show_column_numbers = true
 show_error_codes = true
 show_error_context = true
 warn_unreachable = true
+files = ["src/**/*.py", "tests/**/*.py", "scripts/**/*.py"]
 
 [[tool.mypy.overrides]]
 module = "tests.*"
@@ -121,7 +122,7 @@ addopts = "--color=yes --doctest-modules --exitfirst --failed-first{% if cookiec
 {%- if cookiecutter.development_environment == "strict" %}
 filterwarnings = ["error", "ignore::DeprecationWarning"]
 {%- endif %}
-testpaths = ["src", "tests"]
+testpaths = ["src", "tests", "scripts"]
 xfail_strict = true
 
 [tool.ruff]  # https://github.com/charliermarsh/ruff
