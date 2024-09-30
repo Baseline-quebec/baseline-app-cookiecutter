@@ -118,6 +118,7 @@ xfail_strict = true
 
 [tool.ruff]  # https://github.com/charliermarsh/ruff
 fix = true
+preview = true
 line-length = 99
 src = ["src", "tests"]
 target-version = "py{{ cookiecutter.python_version.split('.')[:2]|join }}"
@@ -130,13 +131,18 @@ ignore = [
     "ANN003", # Missing type annotation for kwargs. Complicates the code too much with the current annotation system.
     "ANN101", # Missing type annotation for self in method. Useless info as it's always the same and clutters the code.
     "ANN102", # Missing type annotation for cls in classmethod. Useless info as it's always the same and clutters the code.
+    "ANN401", # No Any type. This can be useful in some cases.
+    "ARG002", # Unused argument. Sometimes it's useful to keep the argument for future use, for retrocompatibility or to abide by an interface.
     "COM812", # Missing trailing comma in a single-line list. Already handled by ruff formater
     "CPY001", # Copyright notice missing. Not always needed.
     "E501", # Line too long. Already handled by ruff formater
     "E731", # Do not assign a lambda expression. Do not agree with this rule, it improves readability as it is self-documenting the lambda function.
+    "FIX002", # Fix TODO before release. Not useful in our workflow.
+    "FURB118",  # reimplemented-operator. We disagree that using the "`operator` module is more concise and communicates the intent of the code more clearly" compared to a lambda function with appropriately named args.
     "PD901", # Do not use the variable name "df". This is a common name for dataframes and is not a problem.
     "RET504", # Unnecessary assign before return. This is not bad, it helps debugging.
     "S311", # Standard pseudo-random generators are not suitable for security/cryptographic purposes. Our use case is not security/cryptographic.
+    "TD003", # Reference issue link.
     "TRY003", # Raise exception with vanilla arguments. Creating exception classes should be done only when really needed.
     "W505", # Doc line too long. Editor autowraps doc, and it's too much work to fix it.
     "ISC001", # single-line-implicit-string-concatenation, `z = "The quick " "brown fox."` becomes `z = "The quick brown fox."` This rule may cause conflicts when used with the formatter.
@@ -150,6 +156,13 @@ unfixable = ["F401", "F841"]
 
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["S101", "INP001", "D100", "D101", "SLF"]
+"tests/*" = [
+  "S101",  # Use of assert
+  "D100",  # Missing docstring in public module
+  "D101",  # Missing docstring in public class
+  "INP001",  # implicit-namespace-package. Not required when using poetry.
+  "SLF",  # Private member access
+]
 
 [tool.ruff.lint.flake8-tidy-imports]
 ban-relative-imports = "all"
@@ -167,7 +180,7 @@ max-doc-length = 99
 convention = "{{ cookiecutter.__docstring_style|lower }}"
 
 [tool.ruff.lint.pylint]
-max-args = 6
+max-args = 7
 
 [tool.poe.tasks]  # https://github.com/nat-n/poethepoet
 
