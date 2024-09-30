@@ -202,7 +202,7 @@ max-args = 7
         --host $host \
         --port $port \
         --reload \
-        {{ cookiecutter.__project_name_snake_case }}.api:app
+        {{ cookiecutter.__project_name_snake_case }}.app.api:app
     } else {
       gunicorn \
         --access-logfile - \
@@ -214,7 +214,7 @@ max-args = 7
         --worker-class uvicorn.workers.UvicornWorker \
         --worker-tmp-dir /dev/shm \
         --workers 2 \
-        {{ cookiecutter.__project_name_snake_case }}.api:app
+        {{ cookiecutter.__project_name_snake_case }}.app.api:app
     } fi
     """
 

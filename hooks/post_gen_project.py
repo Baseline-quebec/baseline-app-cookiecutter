@@ -1,5 +1,4 @@
 import os
-import shutil
 
 # Read Cookiecutter configuration.
 project_name = "{{ cookiecutter.__project_name_snake_case }}"
@@ -16,10 +15,10 @@ if development_environment != "strict":
 
 # Remove FastAPI if not selected.
 if not with_fastapi_api:
-    os.remove(f"src/{project_name}/api.py")
+    os.remove(f"src/{project_name}/app/api.py")
     os.remove("tests/test_api.py")
 
 # Remove Typer if not selected.
 if not with_typer_cli:
-    os.remove(f"src/{project_name}/cli.py")
+    os.remove(f"src/{project_name}/app/cli.py")
     os.remove("tests/test_cli.py")
