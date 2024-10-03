@@ -1,1 +1,1 @@
-"""{{ cookiecutter.project_name }}."""
+"""Persistance layer for {{ cookiecutter.project_name }} project."""
