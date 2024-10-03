@@ -164,7 +164,6 @@ unfixable = ["F401", "F841"]
 {%- endif %}
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101", "INP001", "D100", "D101", "SLF"]
 "tests/*" = [
   "S101",  # Use of assert
   "D100",  # Missing docstring in public module
