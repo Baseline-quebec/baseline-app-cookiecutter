@@ -1,3 +1,4 @@
+# ruff: noqa: DOC201
 """{{ cookiecutter.project_name }} REST API."""
 
 import logging
@@ -8,9 +9,8 @@ from typing import Annotated
 import coloredlogs
 from fastapi import Depends, FastAPI
 
-from {{ cookiecutter.__project_name_snake_case }}.service import Service
-
 from app.dependencies import get_service
+from {{ cookiecutter.__project_name_snake_case }}.service import Service
 
 
 @asynccontextmanager

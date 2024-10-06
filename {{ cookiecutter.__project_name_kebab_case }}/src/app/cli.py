@@ -1,3 +1,4 @@
+# ruff: noqa: DOC201
 """{{ cookiecutter.project_name }} CLI."""
 
 import typer
