@@ -10,7 +10,7 @@ from fastapi import Depends, FastAPI
 
 from {{ cookiecutter.__project_name_snake_case }}.service import Service
 
-from .dependencies import get_service  # noqa: TID252
+from app.dependencies import get_service
 
 
 @asynccontextmanager

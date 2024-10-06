@@ -9,6 +9,12 @@ description = "{{ cookiecutter.project_description }}"
 authors = ["{{ cookiecutter.author_name }} <{{ cookiecutter.author_email }}>"]
 readme = "README.md"
 repository = "{{ cookiecutter.project_url }}"
+packages = [
+  { include = "{{ cookiecutter.__project_name_snake_case }}", from = "src" },
+  {{%- if cookiecutter.project_type == "app" %}}
+  { include = "app", from = "src" },
+  {%- endif %}
+]
 {%- if cookiecutter.with_conventional_commits|int %}
 
 [tool.commitizen]  # https://commitizen-tools.github.io/commitizen/config/
@@ -193,6 +199,7 @@ max-args = 7
 
 [tool.poe.tasks]  # https://github.com/nat-n/poethepoet
 
+{{%- if cookiecutter.with_fastapi_api|int %}}
   [tool.poe.tasks.api]
   help = "Serve the REST API"
   shell = """
@@ -202,7 +209,7 @@ max-args = 7
         --host $host \
         --port $port \
         --reload \
-        {{ cookiecutter.__project_name_snake_case }}.app.api:app
+        app.api:app
     } else {
       gunicorn \
         --access-logfile - \
@@ -214,7 +221,7 @@ max-args = 7
         --worker-class uvicorn.workers.UvicornWorker \
         --worker-tmp-dir /dev/shm \
         --workers 2 \
-        {{ cookiecutter.__project_name_snake_case }}.app.api:app
+        app.api:app
     } fi
     """
 
@@ -235,7 +242,7 @@ max-args = 7
     type = "boolean"
     name = "dev"
     options = ["--dev"]
-
+{{%- endif %}}
   [tool.poe.tasks.docs]
   help = "Generate this {{ cookiecutter.project_type }}'s docs"
   cmd = """
