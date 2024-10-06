@@ -20,7 +20,6 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:  # noqa: ARG001, RUF029
     # - Remove all handlers associated with the root logger object.
     for handler in logging.root.handlers:
         logging.root.removeHandler(handler)
-    # Add coloredlogs' coloured StreamHandler to the root logger.
     # - Add coloredlogs' colored StreamHandler to the root logger.
     coloredlogs.install()
 
