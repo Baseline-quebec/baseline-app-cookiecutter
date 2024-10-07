@@ -4,7 +4,7 @@
 from src.persistance.vectorstore import WeaviateVectorstore
 from {{ cookiecutter.__project_name_snake_case }}.service import Service
 
-from app.config import config
+from app.v1.config import config
 
 
 def get_vectorstore() -> WeaviateVectorstore:

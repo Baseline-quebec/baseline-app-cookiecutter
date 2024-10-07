@@ -1,42 +1,20 @@
 # ruff: noqa: DOC201
-"""{{ cookiecutter.project_name }} REST API."""
+"""API module for the application."""
 
-import logging
-from collections.abc import AsyncIterator
-from contextlib import asynccontextmanager
-from typing import Annotated
+from fastapi import FastAPI
 
-import coloredlogs
-from fastapi import Depends, FastAPI
-
-from app.dependencies import get_service
-from {{ cookiecutter.__project_name_snake_case }}.service import Service
+from app.v1.api import app as v0_app
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:  # noqa: ARG001, RUF029
-    """Handle FastAPI startup and shutdown events."""
-    # Startup events:
-    # - Remove all handlers associated with the root logger object.
-    for handler in logging.root.handlers:
-        logging.root.removeHandler(handler)
-    # - Add coloredlogs' colored StreamHandler to the root logger.
-    coloredlogs.install()
+app = FastAPI(title="{{ cookiecutter.__project_name }}", version="0.1.0")
 
-    # Call dependencies' setup functions here
-
-    yield
-
-    # Call dependencies' teardown functions here
+app.mount("/v0", v0_app)
 
 
-app = FastAPI(lifespan=lifespan)
-
-
-@app.get("/my-endpoint")
-async def my_endpoint(service: Annotated[Service, Depends(get_service)]) -> None:
-    """Handle my endpoint."""
-    service.my_endpoint_handler()
+@app.get("/", include_in_schema=False)
+def root() -> str:
+    """Latest documentation available at v0/docs."""
+    return "Bienvenue sur l'API de {{ cookiecutter.__project_name }}! La documentation la plus récente est disponible à /v1/docs."
 
 
 if __name__ == "__main__":
