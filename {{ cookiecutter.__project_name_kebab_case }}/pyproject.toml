@@ -11,9 +11,9 @@ readme = "README.md"
 repository = "{{ cookiecutter.project_url }}"
 packages = [
   { include = "{{ cookiecutter.__project_name_snake_case }}", from = "src" },
-  {{%- if cookiecutter.project_type == "app" %}}
+{%- if cookiecutter.project_type == "app" %}
   { include = "app", from = "src" },
-  {%- endif %}
+{%- endif %}
 ]
 {%- if cookiecutter.with_conventional_commits|int %}
 
