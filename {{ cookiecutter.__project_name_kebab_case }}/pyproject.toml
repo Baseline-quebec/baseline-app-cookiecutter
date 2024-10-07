@@ -175,6 +175,7 @@ unfixable = ["F401", "F841"]
   "S101",  # Use of assert
   "D100",  # Missing docstring in public module
   "D101",  # Missing docstring in public class
+  "D104",  # Missing docstring in public package
   "INP001",  # implicit-namespace-package. Not required when using poetry.
   "SLF",  # Private member access
 ]
