@@ -1,7 +1,7 @@
 """{{ cookiecutter.project_name }} CLI."""
 
 import typer
-from rich import print
+from rich import print  # noqa: A004
 
 
 app = typer.Typer()
