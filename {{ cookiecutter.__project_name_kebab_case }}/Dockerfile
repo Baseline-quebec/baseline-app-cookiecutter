@@ -80,6 +80,7 @@ RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/pypoetry/ \
     poetry install --all-extras --no-interaction
 
 # Install missing stubs for type checking.
+RUN mkdir -p tests/ && touch tests/__init__.py
 RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/pypoetry/ \
     mypy --install-types
 
