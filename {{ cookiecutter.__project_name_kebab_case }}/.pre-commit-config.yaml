@@ -19,6 +19,7 @@ repos:
     rev: v4.5.0
     hooks:
       - id: check-added-large-files
+        args: ['--maxkb=50000']
       - id: check-ast
       - id: check-builtin-literals
       - id: check-case-conflict
@@ -38,9 +39,8 @@ repos:
         types: [python]
       - id: fix-byte-order-marker
       - id: mixed-line-ending
-        exclude: ^docs/.*
       - id: name-tests-test
-        args: [--pytest-test-first]
+        args: [--pytest]
       - id: trailing-whitespace
         types: [python]
   - repo: local
@@ -61,6 +61,7 @@ repos:
         require_serial: true
         language: system
         types_or: [python, pyi]
+        pass_filenames: false
       - id: ruff-format
         name: ruff format
         entry: ruff format
@@ -68,6 +69,7 @@ repos:
         require_serial: true
         language: system
         types_or: [python, pyi]
+        pass_filenames: false
       {%- if cookiecutter.development_environment == "strict" %}
       - id: shellcheck
         name: shellcheck
@@ -75,6 +77,7 @@ repos:
         args: [--check-sourced]
         language: system
         types: [shell]
+        pass_filenames: false
       {%- endif %}
       - id: poetry-check
         name: poetry check
@@ -86,3 +89,5 @@ repos:
         entry: mypy
         language: system
         types: [python]
+        pass_filenames: false
+
