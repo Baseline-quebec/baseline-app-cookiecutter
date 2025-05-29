@@ -9,8 +9,8 @@ RUN rm /etc/apt/apt.conf.d/docker-clean
 # Configure Python to print tracebacks on crash [1], and to not buffer stdout and stderr [2].
 # [1] https://docs.python.org/3/using/cmdline.html#envvar-PYTHONFAULTHANDLER
 # [2] https://docs.python.org/3/using/cmdline.html#envvar-PYTHONUNBUFFERED
-ENV PYTHONFAULTHANDLER 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONFAULTHANDLER=1
+ENV PYTHONUNBUFFERED=1
 {%- endif %}
 
 # Create a non-root user and switch to it [1].
@@ -23,8 +23,8 @@ RUN groupadd --gid $GID user && \
 USER user
 
 # Create and activate a virtual environment.
-ENV VIRTUAL_ENV /opt/{{ cookiecutter.__project_name_kebab_case }}-env
-ENV PATH $VIRTUAL_ENV/bin:$PATH
+ENV VIRTUAL_ENV=/opt/{{ cookiecutter.__project_name_kebab_case }}-env
+ENV PATH=$VIRTUAL_ENV/bin:$PATH
 RUN python -m venv $VIRTUAL_ENV
 
 # Set the working directory.
@@ -32,13 +32,13 @@ WORKDIR /workspaces/{{ cookiecutter.__project_name_kebab_case }}/
 
 
 
-FROM base as poetry
+FROM base AS poetry
 
 USER root
 
 # Install Poetry in separate venv so it doesn't pollute the main venv.
-ENV POETRY_VERSION 1.8.0
-ENV POETRY_VIRTUAL_ENV /opt/poetry-env
+ENV POETRY_VERSION=1.8.0
+ENV POETRY_VIRTUAL_ENV=/opt/poetry-env
 RUN --mount=type=cache,target=/root/.cache/pip/ \
     python -m venv $POETRY_VIRTUAL_ENV && \
     $POETRY_VIRTUAL_ENV/bin/pip install poetry~=$POETRY_VERSION && \
@@ -61,7 +61,7 @@ RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/pypoetry/ \
 
 
 
-FROM poetry as dev
+FROM poetry AS dev
 
 # Install development tools: curl, git, gpg, ssh, starship, sudo, vim, and zsh.
 USER root
@@ -72,7 +72,6 @@ RUN --mount=type=cache,target=/var/cache/apt/ \
     sh -c "$(curl -fsSL https://starship.rs/install.sh)" -- "--yes" && \
     usermod --shell /usr/bin/zsh user && \
     echo 'user ALL=(root) NOPASSWD:ALL' > /etc/sudoers.d/user && chmod 0440 /etc/sudoers.d/user
-RUN git config --system --add safe.directory '*'
 USER user
 
 # Install the development Python dependencies in the virtual environment.
@@ -86,7 +85,7 @@ RUN mkdir -p /opt/build/poetry/ && cp poetry.lock /opt/build/poetry/ && \
     mkdir -p /opt/build/git/ && cp .git/hooks/commit-msg .git/hooks/pre-commit /opt/build/git/
 
 # Configure the non-root user's shell.
-ENV ANTIDOTE_VERSION 1.8.6
+ENV ANTIDOTE_VERSION=1.8.6
 RUN git clone --branch v$ANTIDOTE_VERSION --depth=1 https://github.com/mattmc3/antidote.git ~/.antidote/ && \
     echo 'zsh-users/zsh-syntax-highlighting' >> ~/.zsh_plugins.txt && \
     echo 'zsh-users/zsh-autosuggestions' >> ~/.zsh_plugins.txt && \
@@ -102,7 +101,13 @@ RUN git clone --branch v$ANTIDOTE_VERSION --depth=1 https://github.com/mattmc3/a
     mkdir ~/.history/ && \
     zsh -c 'source ~/.zshrc'
 
-FROM base AS app
+FROM poetry AS base-app
+
+RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/pypoetry/ \
+    poetry install --only=app --all-extras --no-interaction
+
+
+FROM base-app AS app
 
 # Copy the virtual environment from the poetry stage.
 COPY --from=poetry $VIRTUAL_ENV $VIRTUAL_ENV
