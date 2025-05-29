@@ -1,25 +1,22 @@
 """{{ cookiecutter.project_name }} REST API."""
 
 import asyncio
-import logging
+import sys
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-import coloredlogs
+from decouple import config
 from fastapi import FastAPI
+from loguru import logger
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:  # noqa: ARG001
     """Handle FastAPI startup and shutdown events."""
-    # Startup events:
-    # - Remove all handlers associated with the root logger object.
-    for handler in logging.root.handlers:
-        logging.root.removeHandler(handler)
-    # - Add coloredlogs' colored StreamHandler to the root logger.
-    coloredlogs.install()
+    logger.remove()
+    logger.add(sys.stderr, level=config("LOG_LEVEL", default="INFO"))
+
     yield
-    # Shutdown events.
 
 
 app = FastAPI(lifespan=lifespan)
