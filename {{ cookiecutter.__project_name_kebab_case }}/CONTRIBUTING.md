@@ -1,4 +1,4 @@
-# README for {{ cookiecutter.project_name }} project
+# Contributing to {{ cookiecutter.project_name }} project
 
 ## Using
 

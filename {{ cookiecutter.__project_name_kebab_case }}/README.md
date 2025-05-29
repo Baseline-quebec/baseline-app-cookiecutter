@@ -4,106 +4,101 @@
 
 {{ cookiecutter.project_description }}
 
-## Exécution de l'application
+## Table of contents
 
-To install this package, run:
+1. [Setup](#setup)
+2. [Usage](#usage)
 
-```sh
-pip install {{ cookiecutter.__project_name_kebab_case }}
-```
+## Setup
 
-## Using
+### Environment variables
 
-{%- if cookiecutter.with_typer_cli|int %}
+To use this project, you need to set the environment variables. To do so, create a copy of the `.env.sample` file and name it `.env`. Then, fill in the values of the variables.
 
-Pour voir les commandes disponibles: exécutez::
+### Requirements
 
-```sh
-{{ cookiecutter.__project_name_kebab_case }} --help
-```
+The set of requirements is dependent on how you want to run the application: locally or in a container.
 
-{%- elif cookiecutter.project_type == "app" %}
+#### Local setup
 
-Pour lancer l'application, exécutez:
+To use the application source code, you must have the following tools installed:
 
-```sh
-docker compose up app
-```
+- [Python 3.12](https://www.python.org/downloads/) (the exact version is important)
+- [Poetry](https://python-poetry.org/docs/#installation) (the exact version is not important, but there are some differences between major versions)
 
-{%- if cookiecutter.with_fastapi_api|int %}
-
-L'application sera accessible à l'adresse [localhost:8000](http://localhost:8000)..
-{%- endif %}
-
-Within the Dev Container this is equivalent to:
-
-```sh
-poe {% if cookiecutter.with_fastapi_api|int %}api{% else %}app{% endif %}
-```
-
-{%- else %}
-
-Exemple d'utilisation:
-
-```python
-import {{ cookiecutter.__project_name_snake_case }}
-
-...
-```
-
-{%- endif %}
-
-## Utilisation du code source
-
-Pour utiliser le code source de l'application, vous devez avoir les outils suivants installés sur votre machine:
-
-- [Python 3.12](https://www.python.org/downloads/)
-- [Poetry](https://python-poetry.org/docs/#installation)
-
-Vérifiez que vous avez bien installé les outils en exécutant les commandes suivantes dans votre terminal:
+Check that the tools have been correctly installed by executing the following commands in your terminal:
 
 ```bash
 python --version
 ```
 
-puis
-
 ```bash
 poetry --version
 ```
 
-Pour installer les dépendances du projet, exécutez la commande suivante à la racine du projet:
+To install the project dependencies, run the following command at the project's root:
 
 ```bash
 poetry install
 ```
 
-Vous pouvez ensuite activer l'environnement virtuel créé par Poetry en exécutant la commande suivante:
+This will create a virtual environment and install the dependencies in it at the root of the project in a folder named `.venv`.
+
+You can then activate the virtual environment created by Poetry (version less than 2.0) by running the following command:
 
 ```bash
 poetry shell
 ```
 
-Pour lancer l'application en mode développement, exécutez la commande suivante:
+If you are using Poetry version 2.0 or higher, you need to install the [plugin](https://python-poetry.org/docs/plugins/#using-plugins) `poetry-plugin-shell` before running the previous command. You can do so by running the following command:
+
+```bash
+poetry self add poetry-plugin-shell
+```
+
+#### Container setup
+
+To use the application in a docker container, you must have Docker Desktop installed:
+
+- [Docker](https://docs.docker.com/get-docker/)
+
+## Usage
+
+### Local usage
+
+The project uses `poe-the-poet` as a CLI tool to manage the application. The commands are defined in the `pyproject.toml` file. To see available commands, you can run the following command at the project's root:
+
+```bash
+poe
+```
+
+To run the application locally, you need to execute the following command at the project's root:
 
 ```bash
 poe api --dev
 ```
 
-L'application sera accessible à l'adresse [localhost:8000](http://localhost:8000). Pour lancer l'application en mode production, voir la section [Déploiement](#déploiement).
+This will start the application in development mode. You can then access the API at the following URL: [`http://localhost:8000`](http://localhost:8000).
 
-Pour plus de détails sur les points d'entrée `poe` du projet, consultez le fichier [pyproject.toml](pyproject.toml).
+The API documentation is available at the following URL: [`http://localhost:8000/docs`](http://localhost:8000/docs). You can use it to test the different endpoints of the API.
 
-## Structure du projet
+### Container usage
 
-Le projet est structuré de la manière suivante:
+To run the application in a container, you need to execute the following command at the project's root:
 
-- `src/`: Contient le code source de l'application.
-- `tests/`: Contient les tests unitaires et d'intégration de l'application.
-- `docs/`: Contient les ADRs et les guides de configuration.
+```bash
+docker compose up app
+```
 
-À la racine, on retrouve le `Dockerfile` et un `docker-compose.yml` pour faciliter le déploiement de l'application. On trouve aussi un fichier `pyproject.toml` qui contient la configuration du projet Poetry ainsi que les READMEs pour la documentation du projet.
+This will start the application in a container. You can then access the API at the following URL: [`http://localhost:8000`](http://localhost:8000).
 
-## Développement
+## Project structure
 
+The project is structured as follows:
+
+- `src/`: Contains the source code of the application.
+- `tests/`: Contains the unit and integration tests of the application.
+- `docs/`: Contains the ADRs and configuration guides.
+
+At the root, you will find the `Dockerfile` and a `docker-compose.yml` file to facilitate the deployment of the application. There is also a `pyproject.toml` file that contains the Poetry project configuration, as well as READMEs for project documentation.
 Pour contribuer au projet, lire le fichier [README.dev.md](README.dev.md).

@@ -5,7 +5,7 @@ import sys
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
-from decouple import config
+from decouple import config as env_vars
 from fastapi import FastAPI
 from loguru import logger
 
@@ -14,7 +14,7 @@ from loguru import logger
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:  # noqa: ARG001
     """Handle FastAPI startup and shutdown events."""
     logger.remove()
-    logger.add(sys.stderr, level=config("LOG_LEVEL", default="INFO"))
+    logger.add(sys.stderr, level=env_vars("LOG_LEVEL", default="INFO"))
 
     yield
 
