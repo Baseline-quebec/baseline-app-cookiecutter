@@ -25,8 +25,9 @@ version_provider = "poetry"
 
 [tool.poetry.dependencies]  # https://python-poetry.org/docs/dependency-specification/
 {%- if cookiecutter.with_fastapi_api|int %}
-coloredlogs = ">=15.0.1"
 fastapi = { extras = ["all"], version = ">=0.110.1" }
+loguru = "^0.7.3"
+python-decouple = "^3.8"
 gunicorn = ">=21.2.0"
 {%- endif %}
 {%- if cookiecutter.project_type == "app" %}
