@@ -104,7 +104,7 @@ RUN git clone --branch v$ANTIDOTE_VERSION --depth=1 https://github.com/mattmc3/a
 FROM poetry AS base-app
 
 RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/pypoetry/ \
-    poetry install --only=app --all-extras --no-interaction
+    poetry install --only app --all-extras --no-interaction
 
 
 FROM base-app AS app
