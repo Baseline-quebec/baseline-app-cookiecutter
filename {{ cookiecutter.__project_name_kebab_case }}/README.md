@@ -101,4 +101,4 @@ The project is structured as follows:
 - `docs/`: Contains the ADRs and configuration guides.
 
 At the root, you will find the `Dockerfile` and a `docker-compose.yml` file to facilitate the deployment of the application. There is also a `pyproject.toml` file that contains the Poetry project configuration, as well as READMEs for project documentation.
-Pour contribuer au projet, lire le fichier [README.dev.md](README.dev.md).
+Pour contribuer au projet, lire le fichier [CONTRIBUTING.md](CONTRIBUTING.md).
