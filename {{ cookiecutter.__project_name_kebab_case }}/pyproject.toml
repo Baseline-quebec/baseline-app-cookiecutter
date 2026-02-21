@@ -49,8 +49,10 @@ coverage = { extras = ["toml"], version = ">=7.4.4" }
 mypy = ">=1.9.0"
 pre-commit = ">=3.7.0"
 pytest = ">=8.1.1"
+pytest-bdd = ">=7.0.0"
 pytest-mock = ">=3.14.0"
 pytest-xdist = ">=3.5.0"
+httpx = ">=0.27.0"
 ruff = ">=0.5.7"
 {%- if cookiecutter.development_environment == "strict" %}
 safety = ">=3.1.0"
@@ -82,7 +84,7 @@ source = ["src"]
 directory = "reports/htmlcov"
 
 [tool.coverage.xml]  # https://coverage.readthedocs.io/en/latest/cmd.html#cmd-xml
-directory = "reports/coverage.xml"
+output = "reports/coverage.xml"
 
 [tool.mypy]  # https://mypy.readthedocs.io/en/latest/config_file.html
 junit_xml = "reports/mypy.xml"
@@ -125,6 +127,7 @@ filterwarnings = ["error", "ignore::DeprecationWarning"]
 {%- endif %}
 testpaths = ["tests"]
 xfail_strict = true
+bdd_features_base_dir = "tests/features/"
 
 [tool.ruff]  # https://github.com/charliermarsh/ruff
 fix = true
@@ -138,8 +141,6 @@ select = ["ALL"]
 ignore = [
     "ANN002", # Missing type annotation for args. Complicates the code too much with the current annotation system.
     "ANN003", # Missing type annotation for kwargs. Complicates the code too much with the current annotation system.
-    "ANN101", # Missing type annotation for self in method. Useless info as it's always the same and clutters the code.
-    "ANN102", # Missing type annotation for cls in classmethod. Useless info as it's always the same and clutters the code.
     "COM812", # Missing trailing comma in a single-line list. Already handled by ruff formater
     "CPY001", # Copyright notice missing. Not always needed.
     "E501", # Line too long. Already handled by ruff formater
@@ -154,7 +155,7 @@ ignore = [
 unfixable = ["ERA001", "F401", "F841", "T201", "T203"]
 {%- else %}
 select = ["A", "ASYNC", "B", "C4", "C90", "D", "DTZ", "E", "F", "FLY", "I", "ISC", "LOG", "N", "NPY", "PERF", "PGH", "PIE", "PL", "PT", "Q", "RET", "RUF", "RSE", "SIM", "TID", "UP", "W", "YTT"]
-ignore = ["D203", "D213", "E501", "G010", "PGH003", "RET504", "S101", "S307"]
+ignore = ["D203", "D213", "E501", "PGH003", "RET504"]
 unfixable = ["F401", "F841"]
 {%- endif %}
 
@@ -180,6 +181,7 @@ convention = "{{ cookiecutter.__docstring_style|lower }}"
 max-args = 6
 
 [tool.poe.tasks]  # https://github.com/nat-n/poethepoet
+{%- if cookiecutter.with_fastapi_api|int %}
 
   [tool.poe.tasks.api]
   help = "Serve the REST API"
@@ -223,6 +225,7 @@ max-args = 6
     type = "boolean"
     name = "dev"
     options = ["--dev"]
+{%- endif %}
 
   [tool.poe.tasks.docs]
   help = "Generate this {{ cookiecutter.project_type }}'s docs"

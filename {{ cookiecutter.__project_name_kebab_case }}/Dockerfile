@@ -4,14 +4,12 @@ FROM {{ cookiecutter.__docker_image }} AS base
 
 # Remove docker-clean so we can keep the apt cache in Docker build cache.
 RUN rm /etc/apt/apt.conf.d/docker-clean
-{%- if cookiecutter.development_environment == "strict" %}
 
 # Configure Python to print tracebacks on crash [1], and to not buffer stdout and stderr [2].
 # [1] https://docs.python.org/3/using/cmdline.html#envvar-PYTHONFAULTHANDLER
 # [2] https://docs.python.org/3/using/cmdline.html#envvar-PYTHONUNBUFFERED
 ENV PYTHONFAULTHANDLER=1
 ENV PYTHONUNBUFFERED=1
-{%- endif %}
 
 # Create a non-root user and switch to it [1].
 # [1] https://code.visualstudio.com/remote/advancedcontainers/add-nonroot-user
@@ -37,7 +35,7 @@ FROM base AS poetry
 USER root
 
 # Install Poetry in separate venv so it doesn't pollute the main venv.
-ENV POETRY_VERSION=2.1.3
+ENV POETRY_VERSION=2.2.1
 ENV POETRY_VIRTUAL_ENV=/opt/poetry-env
 RUN --mount=type=cache,target=/root/.cache/pip/ \
     python -m venv $POETRY_VIRTUAL_ENV && \
@@ -69,6 +67,7 @@ RUN --mount=type=cache,target=/var/cache/apt/ \
     --mount=type=cache,target=/var/lib/apt/ \
     apt-get update && \
     apt-get install --no-install-recommends --yes curl git gnupg ssh sudo vim zsh && \
+    git config --system safe.directory '*' && \
     sh -c "$(curl -fsSL https://starship.rs/install.sh)" -- "--yes" && \
     usermod --shell /usr/bin/zsh user && \
     echo 'user ALL=(root) NOPASSWD:ALL' > /etc/sudoers.d/user && chmod 0440 /etc/sudoers.d/user
@@ -101,13 +100,7 @@ RUN git clone --branch v$ANTIDOTE_VERSION --depth=1 https://github.com/mattmc3/a
     mkdir ~/.history/ && \
     zsh -c 'source ~/.zshrc'
 
-FROM poetry AS base-app
-
-RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/pypoetry/ \
-    poetry install --only app --all-extras --no-interaction
-
-
-FROM base-app AS app
+FROM poetry AS app
 
 # Copy the virtual environment from the poetry stage.
 COPY --from=poetry $VIRTUAL_ENV $VIRTUAL_ENV
@@ -116,7 +109,9 @@ COPY --from=poetry $VIRTUAL_ENV $VIRTUAL_ENV
 COPY --chown=user:user ./src ./src
 COPY --chown=user:user ./pyproject.toml .
 COPY --chown=user:user ./poetry.lock .
+{%- if cookiecutter.with_fastapi_api|int %}
 
 # Expose the app.
 ENTRYPOINT ["/opt/{{ cookiecutter.__project_name_kebab_case }}-env/bin/poe"]
 CMD ["api"]
+{%- endif %}

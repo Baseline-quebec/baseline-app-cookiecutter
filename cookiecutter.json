@@ -6,8 +6,6 @@
   "author_name": "John Smith",
   "author_email": "john@example.com",
   "python_version": "3.12",
-  "continuous_integration": "GitHub",
-  "teamwork_uri": "",
   "development_environment": [
     "strict",
     "simple"

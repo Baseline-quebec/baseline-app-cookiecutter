@@ -36,15 +36,17 @@ services:
     profiles:
       - dev
 
+{%- if cookiecutter.with_fastapi_api|int %}
   api:
     build:
       context: .
-      target: api
+      target: app
     tty: true
     ports:
       - "8000:8000"
     profiles:
       - api
+{%- endif %}
 
 volumes:
   command-history-volume:
