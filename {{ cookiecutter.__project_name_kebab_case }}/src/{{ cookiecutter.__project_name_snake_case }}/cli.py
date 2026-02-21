@@ -1,8 +1,8 @@
 """{{ cookiecutter.project_name }} CLI."""
 
-{%- if cookiecutter.with_fastapi_api|int %}
+{% if cookiecutter.with_fastapi_api|int -%}
 import urllib.request
-{%- endif %}
+{% endif -%}
 from typing import Annotated
 
 import typer
