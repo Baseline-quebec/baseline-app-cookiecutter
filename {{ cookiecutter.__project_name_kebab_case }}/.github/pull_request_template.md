@@ -1,5 +1,3 @@
-[<teamwork_task_id>:<teamwork_task_name>](https://baselinequebec.teamwork.com/app/tasks/<teamwork_task_id>)
-
 ## Describe your changes
 
 ## Checklist before opening a pull request

@@ -19,7 +19,6 @@ A modern [Cookiecutter](https://github.com/cookiecutter/cookiecutter) template f
 - 🧪 Test coverage with [Coverage.py](https://github.com/nedbat/coveragepy)
 - 🏗 Scaffolding updates with [Cookiecutter](https://github.com/cookiecutter/cookiecutter) and [Cruft](https://github.com/cruft/cruft)
 - 🧰 Dependency updates with [Dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/about-dependabot-version-updates)
-- 🤹 Task management made easy with references to PR and Issues with [Teamwork](https://baseline6.teamwork.com/app/home/activity?from=homepage)
 
 ## ✨ Using
 
@@ -54,7 +53,6 @@ To create a new Python project with this template:
    </details>
 
 4. Add the remote origin to your local package.
-5. _Optional:_ Link your repository to a Teamwork Project by adding the required Secrets to the Github Repository for the Teamwork Integration Github Workflow using this documentation: https://github.com/Teamwork/github-sync
 
 ### Updating your Python project
 
