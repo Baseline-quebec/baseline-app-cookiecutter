@@ -1,5 +1,4 @@
 {
-    // Debug configurations for {{ cookiecutter.project_name }}
     "version": "0.2.0",
     "configurations": [
 {%- if cookiecutter.with_fastapi_api|int %}
