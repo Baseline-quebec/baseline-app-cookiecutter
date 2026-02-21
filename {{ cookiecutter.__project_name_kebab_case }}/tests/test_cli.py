@@ -1,7 +1,7 @@
 """BDD step definitions for CLI tests."""
 
-from typer.testing import CliRunner, Result
 from pytest_bdd import given, parsers, scenarios, then, when
+from typer.testing import CliRunner, Result
 
 from {{ cookiecutter.__project_name_snake_case }}.cli import app
 

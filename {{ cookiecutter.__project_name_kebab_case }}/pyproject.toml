@@ -157,7 +157,6 @@ ignore = [
     "CPY001", # Copyright notice missing. Not always needed.
     "E501", # Line too long. Already handled by ruff formater
     "E731", # Do not assign a lambda expression. Do not agree with this rule, it improves readability as it is self-documenting the lambda function.
-    "PD901", # Do not use the variable name "df". This is a common name for dataframes and is not a problem.
     "RET504", # Unnecessary assign before return. This is not bad, it helps debugging.
     "S311", # Standard pseudo-random generators are not suitable for security/cryptographic purposes. Our use case is not security/cryptographic.
     "TRY003", # Raise exception with vanilla arguments. Creating exception classes should be done only when really needed.
