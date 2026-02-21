@@ -60,7 +60,7 @@ ItemServiceDep = Annotated[ItemService, Depends(get_item_service)]
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """Log method, path, status code, and duration for every request."""
 
-    async def dispatch(self, request: Request, call_next: ...) -> Response:  # type: ignore[override]
+    async def dispatch(self, request: Request, call_next: ...) -> Response:  # type: ignore[override]  # noqa: PLR6301
         """Process request and log timing information."""
         start = time.perf_counter()
         response: Response = await call_next(request)
@@ -104,25 +104,25 @@ def unhandled_exception_handler(request: Request, exc: Exception) -> JSONRespons
 # --- Routes ----------------------------------------------------------------------
 
 
-@app.get("/health", response_model=HealthResponse)
+@app.get("/health")
 async def health() -> HealthResponse:
     """Health check endpoint."""
     return HealthResponse()
 
 
-@app.post("/items", response_model=Item, status_code=201)
+@app.post("/items", status_code=201)
 async def create_item(data: ItemCreate, service: ItemServiceDep) -> Item:
     """Create a new item."""
     return service.create(data)
 
 
-@app.get("/items", response_model=list[Item])
+@app.get("/items")
 async def list_items(service: ItemServiceDep) -> list[Item]:
     """List all items."""
     return service.list_all()
 
 
-@app.get("/items/{item_id}", response_model=Item)
+@app.get("/items/{item_id}")
 async def get_item(item_id: int, service: ItemServiceDep) -> Item:
     """Get a single item by id."""
     item = service.get(item_id)

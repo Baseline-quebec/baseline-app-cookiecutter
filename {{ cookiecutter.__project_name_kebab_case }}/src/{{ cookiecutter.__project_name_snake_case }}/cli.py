@@ -15,7 +15,7 @@ app = typer.Typer(help="{{ cookiecutter.project_name }} command-line interface."
 @app.callback()
 def main(
     ctx: typer.Context,
-    verbose: Annotated[
+    verbose: Annotated[  # noqa: FBT002
         bool, typer.Option("--verbose", "-v", help="Enable verbose output.")
     ] = False,
 ) -> None:
