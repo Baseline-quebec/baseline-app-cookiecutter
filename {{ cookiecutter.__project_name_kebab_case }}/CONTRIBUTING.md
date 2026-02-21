@@ -1,7 +1,7 @@
 # Contributing to {{ cookiecutter.project_name }} project
 
 ## Using
-
+{% if cookiecutter.with_fastapi_api|int -%}
 To serve this app, run:
 
 ```sh
@@ -15,6 +15,14 @@ Within the Dev Container this is equivalent to:
 ```sh
 poe api
 ```
+{%- else -%}
+To install and use this project:
+
+```sh
+poetry install
+poe test
+```
+{%- endif %}
 
 ## Contributing
 
@@ -107,13 +115,15 @@ The following tools will be automatically installed by poetry to support develop
 
 - _pytest_: This project uses the `pytest` framework for unit testing.
 
-- _ruff_: This project uses `ruff` to lint and automatically format code in order to maintain consistent code across all project and developers.
+- _ruff_: This project uses `ruff` to lint and automatically format code in order to maintain consistent code across all projects and developers.
 
 - _mypy_: This project uses the static type checker `mypy` to enforce type annotation and spot bugs before they can happen.
 
+- _codespell_: This project uses `codespell` to detect common spelling mistakes in code and documentation.
+
 We use the following integration tools:
 
-- _github actions_: This project uses GitHub actions to execute verifications in the cloud before allowing to merge with the main branch.
+- _GitHub Actions_: This project uses GitHub Actions to execute verifications in the cloud before allowing to merge with the main branch.
 
 ### Development workflow
 
@@ -127,7 +137,7 @@ We use the following integration tools:
 1. Push commits with `git push`.
 1. When branch is fully functional, open a pull requests on GitHub and ask for a review.
     1. When approved, bump the versions with `cz bump`.
-    1. Build the doc with `poe doc`.
+    1. Build the docs with `poe docs`.
     1. Push to GitHub one last time before merging.
 1. Repeat.
 
@@ -141,7 +151,7 @@ We use the following integration tools:
 
 - Commits should be atomic.
 
-- Dependency injection should be favorized, and objects instantiation should be made at the latest possible moment.
+- Dependency injection should be favored, and objects instantiation should be made at the latest possible moment.
 
 - Always keep Separation of Concerns in mind.
 

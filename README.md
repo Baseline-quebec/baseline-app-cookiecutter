@@ -1,144 +1,135 @@
-[![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/Baseline-quebec/baseline-app-cookiecutter) [![Open in GitHub Codespaces](https://img.shields.io/static/v1?label=GitHub%20Codespaces&message=Open&color=blue&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=Baseline-quebec/baseline-app-cookiecutter)
+[![CI](https://github.com/Baseline-quebec/baseline-app-cookiecutter/actions/workflows/ci.yml/badge.svg)](https://github.com/Baseline-quebec/baseline-app-cookiecutter/actions/workflows/ci.yml) [![Integration](https://github.com/Baseline-quebec/baseline-app-cookiecutter/actions/workflows/test.yml/badge.svg)](https://github.com/Baseline-quebec/baseline-app-cookiecutter/actions/workflows/test.yml) [![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/Baseline-quebec/baseline-app-cookiecutter) [![Open in GitHub Codespaces](https://img.shields.io/static/v1?label=GitHub%20Codespaces&message=Open&color=blue&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=Baseline-quebec/baseline-app-cookiecutter)
 
-# Baseline app Cookiecutter
+# Baseline App Cookiecutter
 
-A modern [Cookiecutter](https://github.com/cookiecutter/cookiecutter) template for scaffolding Python packages and apps.
-
+A modern [Cookiecutter](https://github.com/cookiecutter/cookiecutter) template for scaffolding Python packages and apps at [Baseline](https://github.com/Baseline-quebec).
 
 ## Features
 
 - Quick and reproducible development environments with VS Code's [Dev Containers](https://code.visualstudio.com/docs/devcontainers/containers), PyCharm's [Docker Compose interpreter](https://www.jetbrains.com/help/pycharm/using-docker-compose-as-a-remote-interpreter.html#docker-compose-remote), and [GitHub Codespaces](https://github.com/features/codespaces)
 - Cross-platform support for Linux, macOS (Apple silicon and Intel), and Windows
-- Modern shell prompt with [Starship](https://github.com/starship/starship)
 - Packaging and dependency management with [Poetry](https://github.com/python-poetry/poetry)
 - Task running with [Poe the Poet](https://github.com/nat-n/poethepoet)
-- Code formatting with [Ruff](https://github.com/charliermarsh/ruff)
-- Code linting with [Pre-commit](https://pre-commit.com/), [Mypy](https://github.com/python/mypy), and [Ruff](https://github.com/charliermarsh/ruff)
-- Optionally follows the [Conventional Commits](https://www.conventionalcommits.org/) standard to automate [Semantic Versioning](https://semver.org/) and [Keep A Changelog](https://keepachangelog.com/) with [Commitizen](https://github.com/commitizen-tools/commitizen)
+- Code formatting and linting with [Ruff](https://github.com/charliermarsh/ruff), [Mypy](https://github.com/python/mypy), and [Pre-commit](https://pre-commit.com/)
+- Spell checking with [codespell](https://github.com/codespell-project/codespell)
+- Documentation with [MkDocs Material](https://squidfunk.github.io/mkdocs-material/)
+- Optional [Conventional Commits](https://www.conventionalcommits.org/) with [Commitizen](https://github.com/commitizen-tools/commitizen)
+- Optional [FastAPI](https://github.com/tiangolo/fastapi) REST API with health check, CRUD stubs, and Sentry integration
+- Optional [Typer](https://github.com/tiangolo/typer) CLI with Rich output
+- Optional [pytest-bdd](https://github.com/pytest-dev/pytest-bdd) for BDD-style tests with Gherkin feature files
 - Continuous integration with [GitHub Actions](https://docs.github.com/en/actions)
 - Test coverage with [Coverage.py](https://github.com/nedbat/coveragepy)
-- Scaffolding updates with [Cookiecutter](https://github.com/cookiecutter/cookiecutter) and [Cruft](https://github.com/cruft/cruft) (with `poe update` task)
+- Scaffolding updates with [Cruft](https://github.com/cruft/cruft)
 - Dependency updates with [Dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/about-dependabot-version-updates)
-- [Architecture Decision Records](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions) (ADR) template in `docs/decisions/`
-- Confluence documentation link placeholder in generated README
+- [Architecture Decision Records](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions) (ADR) template
+- Claude Code instructions (`CLAUDE.md`) for AI-assisted development
 
 ## Using
 
 ### Creating a new Python project
 
-To create a new Python project with this template:
-
-1. Install the latest [Cruft](https://github.com/cruft/cruft) and [Cookiecutter](https://github.com/cookiecutter/cookiecutter) in your [Python environment](https://github.com/pyenv/pyenv-virtualenv) with:
+1. Install [Cruft](https://github.com/cruft/cruft) and [Cookiecutter](https://github.com/cookiecutter/cookiecutter):
 
    ```sh
    pip install --upgrade "cruft>=2.12.0" "cookiecutter>=2.1.1"
    ```
 
+2. [Create a new repository](https://github.com/new) and clone it locally.
 
-2. [Create a new repository](https://github.com/new) for your Python project, then clone it locally.
-3. Run the following command in the parent directory of the cloned repository to apply the Poetry Cookiecutter template:
+3. Run the following command in the **parent directory** of the cloned repository:
 
    ```sh
    cruft create -f https://github.com/Baseline-quebec/baseline-app-cookiecutter
    ```
 
    <details>
+   <summary>If your repository name differs from the project's slugified name</summary>
 
-   <summary>If your repository name ≠ the project's slugified name</summary>
+   Copy the scaffolded project into the repository:
 
-   If your repository name differs from your project's slugified name (see `project_name` in the [Template parameters](https://github.com/Baseline-quebec/baseline-app-cookiecutter#template-parameters) below), you will need to copy the scaffolded project into the repository with:
-
-      ```sh
-      cp -r {project-name}/ {repository-name}/
-      ```
+   ```sh
+   cp -r {project-name}/ {repository-name}/
+   ```
 
    </details>
 
-4. Add the remote origin to your local package.
+4. Add the remote origin and push.
 
-### Updating your Python project
-
-To update your Python project to the latest template version:
-
-1. Update the project while verifying the existing template parameters and setting any new parameters, if there are any:
-
-   ```sh
-   cruft update --cookiecutter-input
-   ```
-
-2. If any of the file updates failed, resolve them by inspecting the corresponding `.rej` files.
-
-## How-to
-
-### Run the development server (FastAPI)
+### Updating an existing project
 
 ```sh
-poetry run poe api
+cruft update --cookiecutter-input
 ```
 
-### Run the CLI
+If any file updates failed, resolve conflicts by inspecting the `.rej` files.
 
-```sh
-poetry run my-app info
-poetry run my-app config
-poetry run my-app health   # checks API health endpoint
+## Developing this template
+
+### Quick reference
+
+| Command | Description |
+|---------|-------------|
+| `pip install cookiecutter pytest pyyaml` | Install test dependencies |
+| `pytest tests/ -v` | Run unit tests (~60 tests, ~7s) |
+| `pre-commit run --all-files` | Run linting on template code |
+
+### CI/CD
+
+This repository has three CI workflows:
+
+| Workflow | Trigger | What it does |
+|----------|---------|-------------|
+| **CI** (`ci.yml`) | Push / PR | Runs unit tests on Python 3.12 + 3.13 (~20s) |
+| **PR** (`pr.yml`) | PR | Validates PR title follows conventional commits |
+| **Integration** (`test.yml`) | Push / PR | Scaffolds a project, starts a devcontainer, runs `poe lint` + `poe test` (~3 min) |
+
+### Project structure
+
 ```
-
-### Run tests
-
-```sh
-poetry run poe test
-```
-
-### Run linting
-
-```sh
-poetry run poe lint
-```
-
-### Add a new dependency
-
-```sh
-poetry add <package>           # runtime dependency
-poetry add --group dev <pkg>   # development dependency
-```
-
-### Configure environment variables
-
-Copy the example file and fill in the values:
-
-```sh
-cp .env.example .env
-```
-
-### Build and run with Docker
-
-```sh
-docker compose up --build
+baseline-app-cookiecutter/
+├── cookiecutter.json                  # Template parameters
+├── hooks/
+│   ├── pre_gen_project.py             # Input validation
+│   └── post_gen_project.py            # Conditional file removal
+├── tests/
+│   └── test_cookiecutter.py           # Unit tests for the template
+├── {{ cookiecutter.__project_name_kebab_case }}/
+│   ├── .devcontainer/                 # Dev Container config
+│   ├── .github/workflows/             # CI for generated projects
+│   ├── src/{{ ... }}/                 # Source code stubs
+│   ├── tests/                         # Test stubs
+│   ├── pyproject.toml                 # Poetry config
+│   └── ...
+├── .github/
+│   ├── workflows/ci.yml               # Unit tests
+│   ├── workflows/pr.yml               # PR title check
+│   ├── workflows/test.yml             # Integration tests
+│   ├── dependabot.yml                 # Dependency updates
+│   └── CODEOWNERS                     # Code owners
+└── .pre-commit-config.yaml            # Linting for template code
 ```
 
 ## Upstream sync
 
-This template is a fork of [superlinear-ai/substrate](https://github.com/superlinear-ai/substrate). The upstream has since migrated to [uv](https://github.com/astral-sh/uv) (replacing Poetry), [Copier](https://copier.readthedocs.io/) (replacing Cookiecutter), and [ty](https://github.com/astral-sh/ty) (replacing Mypy). These are major structural changes that would require reworking the entire Baseline toolchain and CI/CD pipelines.
+This template is a fork of [superlinear-ai/substrate](https://github.com/superlinear-ai/substrate). The upstream has since migrated to [uv](https://github.com/astral-sh/uv) (replacing Poetry), [Copier](https://copier.readthedocs.io/) (replacing Cookiecutter), and [ty](https://github.com/astral-sh/ty) (replacing Mypy). These are major structural changes that would require reworking the entire Baseline toolchain.
 
-We intentionally stay on **Poetry + Cookiecutter + Mypy** to maintain compatibility with existing Baseline projects and internal workflows. Instead of a full upstream merge, we cherry-pick individual improvements that are independent of the build system migration (e.g., new pre-commit hooks, GitHub Actions version bumps, documentation tooling).
+We intentionally stay on **Poetry + Cookiecutter + Mypy** to maintain compatibility with existing Baseline projects. Instead of a full upstream merge, we cherry-pick individual improvements that are independent of the build system migration.
 
 ## Template parameters
 
-
-| Parameter                                                                 | Description                                                                                                                                                                                                                                                                                                                         |
-| ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |                                                                                                      
-| `project_name` <br> "Spline Reticulator"                                  | The name of the project. Will be slugified to `snake_case` for importing and `kebab-case` for installing. For example, `My Package` will be `my_package` for importing and `my-package` for installing.                                                                                                                             |
-| `project_description` <br> "A Python package that reticulates splines."   | A single-line description of the project.                                                                                                                                                                                                                                                                                           |
-| `github_org` <br> "Baseline-quebec"                                       | The GitHub organization or user that owns the repository. Used to construct the project URL and other references.                                                                                                                                                                                                                    |
-| `project_url` <br> "<https://github.com/{github_org}/{project-name}>"     | The URL to the project's repository. Automatically constructed from `github_org` and `project_name`.                                                                                                                                                                                                                                |
-| `author_name` <br> "John Smith"                                           | The full name of the primary author of the project.                                                                                                                                                                                                                                                                                 |
-| `author_email` <br> "<john@example.com>"                                  | The email address of the primary author of the project.                                                                                                                                                                                                                                                                             |
-| `license` <br> ["Proprietary", "MIT", "Apache-2.0"]                       | The license for the project. Generates a LICENSE file for MIT and Apache-2.0. Proprietary projects get no LICENSE file.                                                                                                                                                                                                              |
-| `python_version` <br> "3.12"                                              | The minimum Python version that the project requires.                                                                                                                                                                                                                                                                               |
-| `development_environment` <br> ["simple", "strict"]                       | Whether to configure the development environment with a focus on simplicity or with a focus on strictness. In strict mode, additional [Ruff rules](https://docs.astral.sh/ruff/rules/) are added, and tools such as [Mypy](https://github.com/python/mypy) and [Pytest](https://github.com/pytest-dev/pytest) are set to strict mode. |
-| `with_fastapi_api` <br> ["0", "1"]                                        | If "1", [FastAPI](https://github.com/tiangolo/fastapi) is added as a run time dependency, FastAPI API stubs and tests are added, a `poe api` command for serving the API is added.                                                                                                                                                  |
-| `with_conventional_commits` <br> ["0", "1"]                                | If "1", [Commitizen](https://github.com/commitizen-tools/commitizen) is added for conventional commits and semantic versioning. Automatically set to "1" in strict mode.                                                                                                                                                            |
-| `with_typer_cli` <br> ["0", "1"]                                          | If "1", [Typer](https://github.com/tiangolo/typer) is added as a run time dependency, Typer CLI stubs and tests are added, the package itself is registered as a CLI.                                                                                                                                                               |
-| `with_sentry` <br> ["0", "1"]                                             | If "1", [Sentry SDK](https://docs.sentry.io/platforms/python/) is added with FastAPI integration. Requires `with_fastapi_api=1`. Adds `sentry_dsn`, `sentry_environment`, and `sentry_traces_sample_rate` settings.                                                                                                                 |
-| `with_pytest_bdd` <br> ["0", "1"]                                         | If "1", [pytest-bdd](https://github.com/pytest-dev/pytest-bdd) is added with BDD-style tests using Gherkin feature files. Default is "0" (plain pytest).                                                                                                                                                                            |                                                                                            
+| Parameter | Description |
+|-----------|-------------|
+| `project_name` <br> "my-app" | The name of the project. Slugified to `snake_case` for importing and `kebab-case` for installing. |
+| `project_description` <br> "A Python app that..." | A single-line description of the project. |
+| `github_org` <br> "Baseline-quebec" | The GitHub organization or user that owns the repository. |
+| `project_url` <br> auto | Automatically constructed from `github_org` and `project_name`. |
+| `author_name` <br> "John Smith" | The full name of the primary author. |
+| `author_email` <br> "john@example.com" | The email address of the primary author. |
+| `license` <br> ["Proprietary", "MIT", "Apache-2.0"] | The license. Generates a LICENSE file for MIT and Apache-2.0. |
+| `python_version` <br> "3.12" | The minimum Python version. |
+| `development_environment` <br> ["strict", "simple"] | Strict mode enables additional Ruff rules, strict Mypy, and strict Pytest. |
+| `with_conventional_commits` <br> ["0", "1"] | Adds Commitizen for conventional commits. Auto-enabled in strict mode. |
+| `with_fastapi_api` <br> ["0", "1"] | Adds FastAPI with health endpoint, CRUD stubs, Pydantic models, and `poe api`. |
+| `with_typer_cli` <br> ["0", "1"] | Adds Typer CLI with `info`, `config`, and `health` commands. |
+| `with_pytest_bdd` <br> ["0", "1"] | Adds pytest-bdd with Gherkin feature files. Default: plain pytest. |
+| `with_sentry` <br> ["0", "1"] | Adds Sentry SDK with FastAPI integration. Requires `with_fastapi_api=1`. |

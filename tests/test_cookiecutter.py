@@ -635,3 +635,88 @@ class TestMkDocs:
         """docs/index.md is generated."""
         project = bake(output_dir)
         assert (project / "docs" / "index.md").is_file()
+
+
+# ---------------------------------------------------------------------------
+# CLAUDE.md tests
+# ---------------------------------------------------------------------------
+
+
+class TestClaudeMd:
+    """Verify CLAUDE.md is generated with correct content."""
+
+    def test_claude_md_exists(self, output_dir: Path) -> None:
+        """CLAUDE.md is generated."""
+        project = bake(output_dir)
+        assert (project / "CLAUDE.md").is_file()
+
+    def test_claude_md_has_project_name(self, output_dir: Path) -> None:
+        """CLAUDE.md contains the project name."""
+        project = bake(output_dir)
+        content = (project / "CLAUDE.md").read_text()
+        assert "test-project" in content
+
+    def test_claude_md_has_snake_case_import(self, output_dir: Path) -> None:
+        """CLAUDE.md references the correct import path."""
+        project = bake(output_dir)
+        content = (project / "CLAUDE.md").read_text()
+        assert "test_project" in content
+
+    def test_claude_md_has_fastapi_when_enabled(self, output_dir: Path) -> None:
+        """CLAUDE.md mentions FastAPI when enabled."""
+        project = bake(output_dir, with_fastapi_api="1")
+        content = (project / "CLAUDE.md").read_text()
+        assert "FastAPI" in content
+        assert "poe api" in content
+
+    def test_claude_md_no_fastapi_when_disabled(self, output_dir: Path) -> None:
+        """CLAUDE.md does not mention poe api when FastAPI is disabled."""
+        project = bake(output_dir, with_fastapi_api="0")
+        content = (project / "CLAUDE.md").read_text()
+        assert "poe api" not in content
+
+
+# ---------------------------------------------------------------------------
+# README conditionalization tests
+# ---------------------------------------------------------------------------
+
+
+class TestReadmeConditional:
+    """Verify README sections are conditionalized correctly."""
+
+    def test_readme_has_api_section_with_fastapi(self, output_dir: Path) -> None:
+        """README has API section when FastAPI is enabled."""
+        project = bake(output_dir, with_fastapi_api="1")
+        content = (project / "README.md").read_text()
+        assert "poe api" in content
+
+    def test_readme_no_api_section_without_fastapi(self, output_dir: Path) -> None:
+        """README has no API section when FastAPI is disabled."""
+        project = bake(output_dir, with_fastapi_api="0")
+        content = (project / "README.md").read_text()
+        assert "poe api" not in content
+
+    def test_readme_has_cli_section_with_typer(self, output_dir: Path) -> None:
+        """README has CLI section when Typer is enabled."""
+        project = bake(output_dir, with_typer_cli="1")
+        content = (project / "README.md").read_text()
+        assert "### CLI" in content
+
+    def test_readme_no_cli_section_without_typer(self, output_dir: Path) -> None:
+        """README has no CLI section when Typer is disabled."""
+        project = bake(output_dir, with_typer_cli="0")
+        content = (project / "README.md").read_text()
+        assert "### CLI" not in content
+
+    def test_readme_has_env_example(self, output_dir: Path) -> None:
+        """README references .env.example (not .env.sample)."""
+        project = bake(output_dir)
+        content = (project / "README.md").read_text()
+        assert ".env.example" in content
+        assert ".env.sample" not in content
+
+    def test_readme_has_mkdocs(self, output_dir: Path) -> None:
+        """README references MkDocs."""
+        project = bake(output_dir)
+        content = (project / "README.md").read_text()
+        assert "poe docs" in content
