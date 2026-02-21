@@ -82,7 +82,7 @@ def test_health_command() -> None:
     """Health command runs without error (no server to check)."""
     result = runner.invoke(app, ["health"])
     # Exit code 1 is expected when no server is running.
-    assert result.exit_code in (0, 1)
+    assert result.exit_code in {0, 1}
 {%- endif %}
 
 

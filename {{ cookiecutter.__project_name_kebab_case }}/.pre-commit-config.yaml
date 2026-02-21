@@ -100,3 +100,9 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
+      - id: codespell
+        name: codespell
+        entry: codespell
+        require_serial: true
+        language: system
+        types_or: [markdown, python, pyi, toml, yaml]

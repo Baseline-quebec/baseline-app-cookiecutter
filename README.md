@@ -117,6 +117,12 @@ cp .env.example .env
 docker compose up --build
 ```
 
+## Upstream sync
+
+This template is a fork of [superlinear-ai/substrate](https://github.com/superlinear-ai/substrate). The upstream has since migrated to [uv](https://github.com/astral-sh/uv) (replacing Poetry), [Copier](https://copier.readthedocs.io/) (replacing Cookiecutter), and [ty](https://github.com/astral-sh/ty) (replacing Mypy). These are major structural changes that would require reworking the entire Baseline toolchain and CI/CD pipelines.
+
+We intentionally stay on **Poetry + Cookiecutter + Mypy** to maintain compatibility with existing Baseline projects and internal workflows. Instead of a full upstream merge, we cherry-pick individual improvements that are independent of the build system migration (e.g., new pre-commit hooks, GitHub Actions version bumps, documentation tooling).
+
 ## Template parameters
 
 

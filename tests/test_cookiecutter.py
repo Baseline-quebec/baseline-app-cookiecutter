@@ -503,3 +503,135 @@ class TestCombinations:
         parsed = tomllib.loads(content.decode())
         assert "tool" in parsed
         assert "poetry" in parsed["tool"]
+
+
+# ---------------------------------------------------------------------------
+# Sprint 4: codespell tests
+# ---------------------------------------------------------------------------
+
+
+class TestCodespell:
+    """Verify codespell hook and configuration."""
+
+    def test_codespell_in_pre_commit(self, output_dir: Path) -> None:
+        """codespell hook is present in pre-commit config."""
+        project = bake(output_dir)
+        content = (project / ".pre-commit-config.yaml").read_text()
+        assert "id: codespell" in content
+        assert "entry: codespell" in content
+
+    def test_codespell_dep_in_pyproject(self, output_dir: Path) -> None:
+        """codespell dependency is in test dependencies."""
+        project = bake(output_dir)
+        content = (project / "pyproject.toml").read_text()
+        assert 'codespell = ">=2.4.0"' in content
+
+    def test_codespell_config_in_pyproject(self, output_dir: Path) -> None:
+        """codespell configuration section exists in pyproject.toml."""
+        import tomllib
+
+        project = bake(output_dir)
+        parsed = tomllib.loads((project / "pyproject.toml").read_bytes().decode())
+        assert "codespell" in parsed["tool"]
+        assert parsed["tool"]["codespell"]["check-filenames"] is True
+
+
+# ---------------------------------------------------------------------------
+# Sprint 4: PR title check workflow tests
+# ---------------------------------------------------------------------------
+
+
+class TestPRWorkflow:
+    """Verify PR title conventional commit check workflow."""
+
+    def test_pr_yml_exists_with_conventional_commits(self, output_dir: Path) -> None:
+        """pr.yml exists when conventional commits is enabled."""
+        project = bake(output_dir, development_environment="strict")
+        assert (project / ".github" / "workflows" / "pr.yml").is_file()
+
+    def test_pr_yml_absent_without_conventional_commits(self, output_dir: Path) -> None:
+        """pr.yml does not exist when conventional commits is disabled."""
+        project = bake(
+            output_dir,
+            development_environment="simple",
+            with_conventional_commits="0",
+        )
+        assert not (project / ".github" / "workflows" / "pr.yml").exists()
+
+    def test_pr_yml_has_commitizen(self, output_dir: Path) -> None:
+        """pr.yml uses commitizen to check PR title."""
+        project = bake(output_dir, development_environment="strict")
+        content = (project / ".github" / "workflows" / "pr.yml").read_text()
+        assert "commitizen" in content
+        assert "cz check" in content
+
+    def test_pr_yml_valid_yaml(self, output_dir: Path) -> None:
+        """pr.yml is valid YAML."""
+        import yaml
+
+        project = bake(output_dir, development_environment="strict")
+        content = (project / ".github" / "workflows" / "pr.yml").read_text()
+        parsed = yaml.safe_load(content)
+        assert parsed["name"] == "PR"
+        assert "title" in parsed["jobs"]
+
+
+# ---------------------------------------------------------------------------
+# Sprint 4: actions/checkout v6 tests
+# ---------------------------------------------------------------------------
+
+
+class TestCheckoutVersion:
+    """Verify actions/checkout version bump."""
+
+    def test_checkout_v6(self, output_dir: Path) -> None:
+        """test.yml uses actions/checkout@v6."""
+        project = bake(output_dir)
+        content = (project / ".github" / "workflows" / "test.yml").read_text()
+        assert "actions/checkout@v6" in content
+        assert "actions/checkout@v5" not in content
+
+
+# ---------------------------------------------------------------------------
+# Sprint 4: MkDocs Material tests
+# ---------------------------------------------------------------------------
+
+
+class TestMkDocs:
+    """Verify MkDocs Material replaces pdoc."""
+
+    def test_mkdocs_yml_exists(self, output_dir: Path) -> None:
+        """mkdocs.yml is generated."""
+        project = bake(output_dir)
+        assert (project / "mkdocs.yml").is_file()
+
+    def test_mkdocs_yml_has_project_name(self, output_dir: Path) -> None:
+        """mkdocs.yml contains the project name."""
+        project = bake(output_dir)
+        content = (project / "mkdocs.yml").read_text()
+        assert "test-project" in content
+
+    def test_mkdocs_material_dep(self, output_dir: Path) -> None:
+        """mkdocs-material is in dev dependencies."""
+        project = bake(output_dir)
+        content = (project / "pyproject.toml").read_text()
+        assert "mkdocs-material" in content
+
+    def test_pdoc_absent(self, output_dir: Path) -> None:
+        """pdoc is not in dependencies."""
+        project = bake(output_dir)
+        content = (project / "pyproject.toml").read_text()
+        assert "pdoc" not in content
+
+    def test_poe_docs_uses_mkdocs(self, output_dir: Path) -> None:
+        """poe docs task uses mkdocs."""
+        project = bake(output_dir)
+        content = (project / "pyproject.toml").read_text()
+        assert "mkdocs" in content
+        assert "[tool.poe.tasks.docs]" in content
+        assert "--serve" in content
+
+    def test_docs_index_md_exists(self, output_dir: Path) -> None:
+        """docs/index.md is generated."""
+        project = bake(output_dir)
+        assert (project / "docs" / "index.md").is_file()

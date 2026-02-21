@@ -62,6 +62,7 @@ pytest-xdist = ">=3.5.0"
 pytest-asyncio = ">=0.25.0"
 {%- endif %}
 httpx = ">=0.28.0"
+codespell = ">=2.4.0"
 ruff = ">=0.11.0"
 {%- if cookiecutter.development_environment == "strict" %}
 safety = ">=3.2.0"
@@ -73,7 +74,7 @@ typeguard = ">=4.4.0"
 cruft = ">=2.15.0"
 ipykernel = ">=6.29.4"
 ipywidgets = ">=8.1.2"
-pdoc = ">=15.0.0"
+mkdocs-material = ">=9.5.0"
 
 [tool.coverage.report]  # https://coverage.readthedocs.io/en/latest/config.html#report
 {%- if cookiecutter.development_environment == "strict" %}
@@ -199,6 +200,11 @@ convention = "{{ cookiecutter.__docstring_style|lower }}"
 max-args = 6
 max-public-methods = 30
 
+[tool.codespell]  # https://github.com/codespell-project/codespell
+builtin = "en-GB_to_en-US,clear,code,rare"
+check-filenames = true
+skip = "./*_cache/,./.venv,./reports"
+
 [tool.poe.tasks]  # https://github.com/nat-n/poethepoet
 {%- if cookiecutter.with_fastapi_api|int %}
 
@@ -247,25 +253,21 @@ max-public-methods = 30
 {%- endif %}
 
   [tool.poe.tasks.docs]
-  help = "Generate this {{ cookiecutter.project_type }}'s docs"
-  cmd = """
-    pdoc
-      --docformat $docformat
-      --output-directory $outputdirectory
-      {{ cookiecutter.__project_name_snake_case }}
+  help = "Build or serve the documentation"
+  shell = """
+    if [ $serve ]
+    then {
+      mkdocs serve
+    } else {
+      mkdocs build
+    } fi
     """
 
     [[tool.poe.tasks.docs.args]]
-    help = "The docstring style (default: {{ cookiecutter.__docstring_style|lower }})"
-    name = "docformat"
-    options = ["--docformat"]
-    default = "{{ cookiecutter.__docstring_style|lower }}"
-
-    [[tool.poe.tasks.docs.args]]
-    help = "The output directory (default: docs)"
-    name = "outputdirectory"
-    options = ["--output-directory"]
-    default = "docs"
+    help = "Serve the documentation locally with live reload"
+    type = "boolean"
+    name = "serve"
+    options = ["--serve"]
 
   [tool.poe.tasks.lint]
   help = "Lint this {{ cookiecutter.project_type }}"

@@ -48,6 +48,8 @@ def check_json_field(response: Response, key: str, value: str) -> None:
 {%- else -%}
 """Tests for the REST API."""
 
+from http import HTTPStatus
+
 from fastapi.testclient import TestClient
 
 from {{ cookiecutter.__project_name_snake_case }}.api import app
@@ -59,19 +61,19 @@ client = TestClient(app)
 def test_health_endpoint() -> None:
     """Health endpoint returns ok status."""
     response = client.get("/health")
-    assert response.status_code == 200
+    assert response.status_code == HTTPStatus.OK
     assert response.json()["status"] == "ok"
 
 
 def test_create_item() -> None:
     """Create an item via POST."""
     response = client.post("/items", json={"name": "Widget", "price": 9.99})
-    assert response.status_code == 201
+    assert response.status_code == HTTPStatus.CREATED
     assert response.json()["name"] == "Widget"
 
 
 def test_get_nonexistent_item() -> None:
     """GET a non-existent item returns 404."""
     response = client.get("/items/999")
-    assert response.status_code == 404
+    assert response.status_code == HTTPStatus.NOT_FOUND
 {%- endif %}

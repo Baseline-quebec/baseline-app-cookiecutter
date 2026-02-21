@@ -1,6 +1,9 @@
 """{{ cookiecutter.project_name }} CLI."""
 
 import sys
+{%- if cookiecutter.with_fastapi_api|int %}
+import urllib.request
+{%- endif %}
 from typing import Annotated
 
 import typer
@@ -48,7 +51,7 @@ def config() -> None:
     table.add_column("Value", style="green")
     for field_name, field_info in Settings.model_fields.items():
         value = getattr(settings, field_name)
-        if _verbose or field_name not in ("sentry_dsn",):
+        if _verbose or field_name != "sentry_dsn":
             table.add_row(field_name, str(value))
     print(table)
 {%- if cookiecutter.with_fastapi_api|int %}
@@ -57,8 +60,6 @@ def config() -> None:
 @app.command()
 def health() -> None:
     """Check the API health endpoint."""
-    import urllib.request
-
     url = f"http://{settings.api_host}:{settings.api_port}/health"
     if _verbose:
         print(f"[dim]Checking {url}...[/dim]")
