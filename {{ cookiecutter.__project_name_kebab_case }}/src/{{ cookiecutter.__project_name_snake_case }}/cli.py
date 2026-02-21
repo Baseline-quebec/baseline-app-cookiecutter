@@ -1,12 +1,13 @@
 """{{ cookiecutter.project_name }} CLI."""
 
+import sys
 from typing import Annotated
 
 import typer
 from rich import print  # noqa: A004
 from rich.table import Table
 
-from {{ cookiecutter.__project_name_snake_case }}.settings import settings
+from {{ cookiecutter.__project_name_snake_case }}.settings import Settings, settings
 
 
 app = typer.Typer(help="{{ cookiecutter.project_name }} command-line interface.")
@@ -40,10 +41,32 @@ def info() -> None:
 
 
 @app.command()
-def greet(
-    name: Annotated[str, typer.Argument(help="Name to greet.")],
-) -> None:
-    """Greet someone by name."""
+def config() -> None:
+    """Print current settings from environment and .env file."""
+    table = Table(title="Settings")
+    table.add_column("Key", style="cyan")
+    table.add_column("Value", style="green")
+    for field_name, field_info in Settings.model_fields.items():
+        value = getattr(settings, field_name)
+        if _verbose or field_name not in ("sentry_dsn",):
+            table.add_row(field_name, str(value))
+    print(table)
+{%- if cookiecutter.with_fastapi_api|int %}
+
+
+@app.command()
+def health() -> None:
+    """Check the API health endpoint."""
+    import urllib.request
+
+    url = f"http://{settings.api_host}:{settings.api_port}/health"
     if _verbose:
-        print(f"[dim]Greeting {name}...[/dim]")
-    print(f"[bold green]Hello, {name}![/bold green]")
+        print(f"[dim]Checking {url}...[/dim]")
+    try:
+        with urllib.request.urlopen(url, timeout=5) as response:  # noqa: S310
+            data = response.read().decode()
+            print(f"[bold green]API is healthy:[/bold green] {data}")
+    except Exception as exc:  # noqa: BLE001
+        print(f"[bold red]API is unreachable:[/bold red] {exc}")
+        raise typer.Exit(code=1) from exc
+{%- endif %}
