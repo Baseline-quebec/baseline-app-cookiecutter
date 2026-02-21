@@ -25,9 +25,16 @@ def check_package_name(package: ModuleType) -> None:
 """Tests for package import."""
 
 import {{ cookiecutter.__project_name_snake_case }}
+from {{ cookiecutter.__project_name_snake_case }}.settings import Settings, settings
 
 
 def test_import() -> None:
     """Verify the package can be imported and has a valid name."""
     assert isinstance({{ cookiecutter.__project_name_snake_case }}.__name__, str)
+
+
+def test_settings_defaults() -> None:
+    """Verify settings can be instantiated with defaults."""
+    assert isinstance(settings, Settings)
+    assert isinstance(settings.app_name, str)
 {%- endif %}

@@ -1,6 +1,5 @@
 """{{ cookiecutter.project_name }} CLI."""
 
-import sys
 {%- if cookiecutter.with_fastapi_api|int %}
 import urllib.request
 {%- endif %}
@@ -64,10 +63,10 @@ def health() -> None:
     if _verbose:
         print(f"[dim]Checking {url}...[/dim]")
     try:
-        with urllib.request.urlopen(url, timeout=5) as response:  # noqa: S310
+        with urllib.request.urlopen(url, timeout=5) as response:
             data = response.read().decode()
             print(f"[bold green]API is healthy:[/bold green] {data}")
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         print(f"[bold red]API is unreachable:[/bold red] {exc}")
         raise typer.Exit(code=1) from exc
 {%- endif %}
