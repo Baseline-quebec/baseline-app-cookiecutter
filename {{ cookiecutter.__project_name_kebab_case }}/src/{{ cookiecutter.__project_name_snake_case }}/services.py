@@ -7,6 +7,7 @@ class ItemService:
     """In-memory item service demonstrating the service layer pattern."""
 
     def __init__(self) -> None:
+        """Initialize the service with an empty item store."""
         self._items: dict[int, Item] = {}
         self._next_id: int = 1
 

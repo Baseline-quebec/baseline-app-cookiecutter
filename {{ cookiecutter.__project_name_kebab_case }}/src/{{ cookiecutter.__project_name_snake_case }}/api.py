@@ -18,7 +18,7 @@ from {{ cookiecutter.__project_name_snake_case }}.settings import settings
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:  # noqa: ARG001
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:  # noqa: ARG001, RUF029
     """Handle FastAPI startup and shutdown events."""
     logger.remove()
     logger.add(sys.stderr, level=settings.log_level)
@@ -82,7 +82,7 @@ app.add_middleware(RequestLoggingMiddleware)
 
 
 @app.exception_handler(StarletteHTTPException)
-async def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:  # noqa: ARG001
+def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:  # noqa: ARG001
     """Return a structured JSON response for HTTP exceptions."""
     logger.warning("HTTP {status}: {detail}", status=exc.status_code, detail=exc.detail)
     return JSONResponse(
@@ -92,7 +92,7 @@ async def http_exception_handler(request: Request, exc: StarletteHTTPException) 
 
 
 @app.exception_handler(Exception)
-async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:  # noqa: ARG001
+def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:  # noqa: ARG001
     """Return a 500 JSON response for unhandled exceptions."""
     logger.exception("Unhandled exception: {exc}", exc=exc)
     return JSONResponse(
