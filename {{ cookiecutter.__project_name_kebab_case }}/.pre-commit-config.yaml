@@ -52,14 +52,26 @@ repos:
         language: system
         stages: [commit-msg]
       {%- endif %}
+      # Development mode: {{ cookiecutter.development_environment }}
+{%- if cookiecutter.development_environment == "strict" %}
       - id: ruff-check
         name: ruff check
         entry: ruff check
-        args: ["--force-exclude", "--extend-fixable={% if cookiecutter.development_environment == "strict" %}ERA001,F401,F841,T201,T203{% else %}F401,F841{% endif %}"{% if cookiecutter.development_environment == "simple" %}, "--fix-only"{% endif %}]
+        args: ["--force-exclude", "--extend-fixable=ERA001,F401,F841,T201,T203"]
         require_serial: true
         language: system
         types_or: [python, pyi]
         pass_filenames: false
+{%- else %}
+      - id: ruff-check
+        name: ruff check
+        entry: ruff check
+        args: ["--force-exclude", "--extend-fixable=F401,F841", "--fix-only"]
+        require_serial: true
+        language: system
+        types_or: [python, pyi]
+        pass_filenames: false
+{%- endif %}
       - id: ruff-format
         name: ruff format
         entry: ruff format

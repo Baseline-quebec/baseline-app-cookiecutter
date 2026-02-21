@@ -1,9 +1,8 @@
 """Shared fixtures for the test suite."""
 {%- if cookiecutter.with_fastapi_api|int %}
 
-from fastapi.testclient import TestClient
-
 import pytest
+from fastapi.testclient import TestClient
 
 from {{ cookiecutter.__project_name_snake_case }}.api import app
 

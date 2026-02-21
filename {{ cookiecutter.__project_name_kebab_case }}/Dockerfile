@@ -111,6 +111,10 @@ COPY --chown=user:user ./pyproject.toml .
 COPY --chown=user:user ./poetry.lock .
 {%- if cookiecutter.with_fastapi_api|int %}
 
+# Health check using stdlib only (no curl in slim images).
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+
 # Expose the app.
 ENTRYPOINT ["/opt/{{ cookiecutter.__project_name_kebab_case }}-env/bin/poe"]
 CMD ["api"]

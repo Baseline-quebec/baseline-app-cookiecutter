@@ -15,13 +15,28 @@ def cli_runner() -> CliRunner:
     return CliRunner()
 
 
+@when("I run the info command", target_fixture="result")
+def run_info(runner: CliRunner) -> Result:
+    """Execute the info command."""
+    return runner.invoke(app, ["info"])
+
+
 @when(
-    parsers.cfparse('I run the fire command with name "{name}"'),
+    parsers.cfparse('I run the greet command with name "{name}"'),
     target_fixture="result",
 )
-def run_fire(runner: CliRunner, name: str) -> Result:
-    """Execute the fire command with the given name."""
-    return runner.invoke(app, ["--name", name])
+def run_greet(runner: CliRunner, name: str) -> Result:
+    """Execute the greet command with the given name."""
+    return runner.invoke(app, ["greet", name])
+
+
+@when(
+    parsers.cfparse('I run the greet command with verbose and name "{name}"'),
+    target_fixture="result",
+)
+def run_greet_verbose(runner: CliRunner, name: str) -> Result:
+    """Execute the greet command with verbose flag."""
+    return runner.invoke(app, ["--verbose", "greet", name])
 
 
 @then(parsers.cfparse("the exit code should be {code:d}"))

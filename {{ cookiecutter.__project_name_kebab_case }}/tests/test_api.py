@@ -17,15 +17,30 @@ def api_client() -> TestClient:
 
 
 @when(
-    parsers.cfparse("I request computation with n={n:d}"),
+    parsers.cfparse("I request GET {path}"),
     target_fixture="response",
 )
-def request_compute(client: TestClient, n: int) -> Response:
-    """Send a compute request to the API."""
-    return client.get("/compute", params={"n": n})
+def request_get(client: TestClient, path: str) -> Response:
+    """Send a GET request to the given path."""
+    return client.get(path)
 
 
-@then("the response should be successful")
-def check_success(response: Response) -> None:
-    """Verify the response has a success status code."""
-    assert response.is_success
+@when(
+    parsers.cfparse('I create an item with name "{name}" and price {price:f}'),
+    target_fixture="response",
+)
+def create_item(client: TestClient, name: str, price: float) -> Response:
+    """Send a POST request to create an item."""
+    return client.post("/items", json={"name": name, "price": price})
+
+
+@then(parsers.cfparse("the response status code should be {code:d}"))
+def check_status_code(response: Response, code: int) -> None:
+    """Verify the response status code."""
+    assert response.status_code == code
+
+
+@then(parsers.cfparse('the response JSON should contain "{key}" = "{value}"'))
+def check_json_field(response: Response, key: str, value: str) -> None:
+    """Verify a field in the response JSON."""
+    assert response.json()[key] == value

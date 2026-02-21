@@ -27,13 +27,16 @@ version_provider = "poetry"
 {%- if cookiecutter.with_fastapi_api|int %}
 fastapi = { extras = ["all"], version = ">=0.110.1" }
 loguru = "^0.7.3"
-python-decouple = "^3.8"
 gunicorn = ">=21.2.0"
 {%- endif %}
 {%- if cookiecutter.project_type == "app" %}
 poethepoet = ">=0.25.0"
 {%- endif %}
+pydantic-settings = ">=2.2.0"
 python = ">={{ cookiecutter.python_version }},<4.0"
+{%- if cookiecutter.with_sentry|int %}
+sentry-sdk = { extras = ["fastapi"], version = ">=1.40.0" }
+{%- endif %}
 {%- if cookiecutter.with_typer_cli|int %}
 typer = { extras = ["all"], version = ">=0.12.0" }
 {%- endif %}
@@ -52,6 +55,9 @@ pytest = ">=8.1.1"
 pytest-bdd = ">=7.0.0"
 pytest-mock = ">=3.14.0"
 pytest-xdist = ">=3.5.0"
+{%- if cookiecutter.with_fastapi_api|int %}
+pytest-asyncio = ">=0.23.0"
+{%- endif %}
 httpx = ">=0.27.0"
 ruff = ">=0.5.7"
 {%- if cookiecutter.development_environment == "strict" %}
@@ -88,9 +94,7 @@ output = "reports/coverage.xml"
 
 [tool.mypy]  # https://mypy.readthedocs.io/en/latest/config_file.html
 junit_xml = "reports/mypy.xml"
-{%- if cookiecutter.with_fastapi_api|int %}
 plugins = "pydantic.mypy"
-{%- endif %}
 {%- if cookiecutter.development_environment == "strict" %}
 strict = true
 disallow_subclassing_any = false
@@ -111,7 +115,7 @@ disable_error_code = [
   "attr-defined",  # Mocked attributes are dynamically defined
 ]
 
-{%- if cookiecutter.development_environment == "strict" and cookiecutter.with_fastapi_api|int %}
+{%- if cookiecutter.development_environment == "strict" %}
 
 [tool.pydantic-mypy]  # https://pydantic-docs.helpmanual.io/mypy_plugin/#configuring-the-plugin
 init_forbid_extra = true
@@ -121,17 +125,25 @@ warn_untyped_fields = true
 {%- endif %}
 
 [tool.pytest.ini_options]  # https://docs.pytest.org/en/latest/reference/reference.html#ini-options-ref
-addopts = "--color=yes --doctest-modules --exitfirst --failed-first{% if cookiecutter.development_environment == 'strict' %} --strict-config --strict-markers --typeguard-packages={{ cookiecutter.__project_name_snake_case }}{% endif %} --verbosity=2 --junitxml=reports/pytest.xml"
+# Development mode: {{ cookiecutter.development_environment }}
 {%- if cookiecutter.development_environment == "strict" %}
-filterwarnings = ["error", "ignore::DeprecationWarning"]
+addopts = "--color=yes --doctest-modules --exitfirst --failed-first --strict-config --strict-markers --typeguard-packages={{ cookiecutter.__project_name_snake_case }} --verbosity=2 --junitxml=reports/pytest.xml"
+filterwarnings = ["error", "ignore::DeprecationWarning", "ignore::pytest.PytestUnraisableExceptionWarning"]
+{%- else %}
+addopts = "--color=yes --doctest-modules --exitfirst --failed-first --verbosity=2 --junitxml=reports/pytest.xml"
+{%- endif %}
+{%- if cookiecutter.with_fastapi_api|int %}
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 {%- endif %}
 testpaths = ["tests"]
 xfail_strict = true
 bdd_features_base_dir = "tests/features/"
 
-[tool.ruff]  # https://github.com/charliermarsh/ruff
+[tool.ruff]  # https://docs.astral.sh/ruff/
 fix = true
 line-length = 99
+preview = true
 src = ["src", "tests"]
 target-version = "py{{ cookiecutter.python_version.split('.')[:2]|join }}"
 
@@ -177,8 +189,9 @@ max-doc-length = 99
 [tool.ruff.lint.pydocstyle]
 convention = "{{ cookiecutter.__docstring_style|lower }}"
 
-[tool.ruff.lint.pylint]
+[tool.ruff.lint.pylint]  # https://docs.astral.sh/ruff/settings/#lint_pylint
 max-args = 6
+max-public-methods = 30
 
 [tool.poe.tasks]  # https://github.com/nat-n/poethepoet
 {%- if cookiecutter.with_fastapi_api|int %}
