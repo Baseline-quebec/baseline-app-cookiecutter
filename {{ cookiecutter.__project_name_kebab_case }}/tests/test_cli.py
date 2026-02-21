@@ -6,7 +6,7 @@ from typer.testing import CliRunner, Result
 from {{ cookiecutter.__project_name_snake_case }}.cli import app
 
 
-scenarios("features/cli.feature")
+scenarios("cli.feature")
 
 
 @given("a CLI runner", target_fixture="runner")

@@ -7,7 +7,7 @@ from pytest_bdd import given, parsers, scenarios, then, when
 from {{ cookiecutter.__project_name_snake_case }}.api import app
 
 
-scenarios("features/api.feature")
+scenarios("api.feature")
 
 
 @given("the API test client", target_fixture="client")

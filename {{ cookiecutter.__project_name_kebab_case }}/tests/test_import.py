@@ -7,7 +7,7 @@ from pytest_bdd import given, scenarios, then
 import {{ cookiecutter.__project_name_snake_case }}
 
 
-scenarios("features/import.feature")
+scenarios("import.feature")
 
 
 @given("the package is installed", target_fixture="package")
