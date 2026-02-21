@@ -6,6 +6,7 @@ on:
       - main
       - master
   pull_request:
+  workflow_dispatch:
 
 jobs:
   test:
@@ -14,21 +15,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["{{ cookiecutter.python_version }}"]
+        python-version: ["{{ cookiecutter.python_version }}"{% if cookiecutter.python_version != "3.13" %}, "3.13"{% endif %}]
 
     name: Python {% raw %}${{{% endraw %} matrix.python-version }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 21
+          node-version: 22
 
       - name: Install @devcontainers/cli
-        run: npm install --location=global @devcontainers/cli@0.58.0
+        run: npm install --location=global @devcontainers/cli@latest
 
       - name: Start Dev Container
         run: |

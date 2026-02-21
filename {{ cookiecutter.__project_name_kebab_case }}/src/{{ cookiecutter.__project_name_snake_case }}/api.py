@@ -1,39 +1,136 @@
 """{{ cookiecutter.project_name }} REST API."""
 
-import asyncio
 import sys
+import time
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
+from typing import Annotated
 
-from decouple import config as env_vars
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from fastapi.responses import JSONResponse
 from loguru import logger
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
+
+from {{ cookiecutter.__project_name_snake_case }}.models import HealthResponse, Item, ItemCreate
+from {{ cookiecutter.__project_name_snake_case }}.services import ItemService
+from {{ cookiecutter.__project_name_snake_case }}.settings import settings
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:  # noqa: ARG001
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:  # noqa: ARG001, RUF029
     """Handle FastAPI startup and shutdown events."""
     logger.remove()
-    logger.add(sys.stderr, level=env_vars("LOG_LEVEL", default="INFO"))
+    logger.add(sys.stderr, level=settings.log_level)
+{%- if cookiecutter.with_sentry|int %}
+
+    if settings.sentry_dsn:
+        import sentry_sdk  
+        sentry_sdk.init(
+            dsn=settings.sentry_dsn,
+            environment=settings.sentry_environment,
+            traces_sample_rate=settings.sentry_traces_sample_rate,
+        )
+        logger.info("Sentry initialized for environment '{}'", settings.sentry_environment)
+{%- endif %}
 
     yield
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
 
-@app.get("/compute")
-async def compute(n: int = 42) -> int:
-    """Compute the result of a CPU-bound function."""
+# --- Dependency injection --------------------------------------------------------
 
-    def fibonacci(n: int) -> int:
-        return n if n <= 1 else fibonacci(n - 1) + fibonacci(n - 2)
 
-    result = await asyncio.to_thread(fibonacci, n)
-    return result
+def get_item_service() -> ItemService:
+    """Provide the shared ItemService instance."""
+    return _item_service
+
+
+_item_service = ItemService()
+
+ItemServiceDep = Annotated[ItemService, Depends(get_item_service)]
+
+
+# --- Middleware ------------------------------------------------------------------
+
+
+class RequestLoggingMiddleware(BaseHTTPMiddleware):
+    """Log method, path, status code, and duration for every request."""
+
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:  # noqa: PLR6301
+        """Process request and log timing information."""
+        start = time.perf_counter()
+        response: Response = await call_next(request)
+        duration_ms = (time.perf_counter() - start) * 1000
+        logger.info(
+            "{method} {path} {status} {duration:.1f}ms",
+            method=request.method,
+            path=request.url.path,
+            status=response.status_code,
+            duration=duration_ms,
+        )
+        return response
+
+
+app.add_middleware(RequestLoggingMiddleware)
+
+
+# --- Exception handlers ----------------------------------------------------------
+
+
+@app.exception_handler(StarletteHTTPException)
+def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:  # noqa: ARG001
+    """Return a structured JSON response for HTTP exceptions."""
+    logger.warning("HTTP {status}: {detail}", status=exc.status_code, detail=exc.detail)
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail},
+    )
+
+
+@app.exception_handler(Exception)
+def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:  # noqa: ARG001
+    """Return a 500 JSON response for unhandled exceptions."""
+    logger.exception("Unhandled exception: {exc}", exc=exc)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+    )
+
+
+# --- Routes ----------------------------------------------------------------------
+
+
+@app.get("/health")
+async def health() -> HealthResponse:
+    """Health check endpoint."""
+    return HealthResponse()
+
+
+@app.post("/items", status_code=201)
+async def create_item(data: ItemCreate, service: ItemServiceDep) -> Item:
+    """Create a new item."""
+    return service.create(data)
+
+
+@app.get("/items")
+async def list_items(service: ItemServiceDep) -> list[Item]:
+    """List all items."""
+    return service.list_all()
+
+
+@app.get("/items/{item_id}")
+async def get_item(item_id: int, service: ItemServiceDep) -> Item:
+    """Get a single item by id."""
+    item = service.get(item_id)
+    if item is None:
+        raise HTTPException(status_code=404, detail=f"Item {item_id} not found")
+    return item
 
 
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run(app, port=8000, log_level="info")
+    uvicorn.run(app, host=settings.api_host, port=settings.api_port, log_level="info")

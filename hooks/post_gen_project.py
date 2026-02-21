@@ -1,3 +1,5 @@
+"""Post-generation hook: remove files based on cookiecutter options."""
+
 import os
 import shutil
 
@@ -6,8 +8,6 @@ project_name = "{{ cookiecutter.__project_name_snake_case }}"
 development_environment = "{{ cookiecutter.development_environment }}"
 with_fastapi_api = int("{{ cookiecutter.with_fastapi_api }}")
 with_typer_cli = int("{{ cookiecutter.with_typer_cli }}")
-continuous_integration = "{{ cookiecutter.continuous_integration }}"
-is_application = "{{ cookiecutter.project_type == 'app' }}" == "True"
 
 # Remove py.typed and Dependabot if not in strict mode.
 if development_environment != "strict":
@@ -17,9 +17,17 @@ if development_environment != "strict":
 # Remove FastAPI if not selected.
 if not with_fastapi_api:
     os.remove(f"src/{project_name}/api.py")
+    os.remove(f"src/{project_name}/models.py")
+    os.remove(f"src/{project_name}/services.py")
     os.remove("tests/test_api.py")
+    os.remove("tests/features/api.feature")
 
 # Remove Typer if not selected.
 if not with_typer_cli:
     os.remove(f"src/{project_name}/cli.py")
     os.remove("tests/test_cli.py")
+    os.remove("tests/features/cli.feature")
+
+# Remove .vscode/ directory if not using FastAPI (no launch.json needed).
+if not with_fastapi_api and not with_typer_cli:
+    shutil.rmtree(".vscode", ignore_errors=True)

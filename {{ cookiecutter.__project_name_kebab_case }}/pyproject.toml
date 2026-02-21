@@ -27,13 +27,16 @@ version_provider = "poetry"
 {%- if cookiecutter.with_fastapi_api|int %}
 fastapi = { extras = ["all"], version = ">=0.110.1" }
 loguru = "^0.7.3"
-python-decouple = "^3.8"
 gunicorn = ">=21.2.0"
 {%- endif %}
 {%- if cookiecutter.project_type == "app" %}
 poethepoet = ">=0.25.0"
 {%- endif %}
+pydantic-settings = ">=2.2.0"
 python = ">={{ cookiecutter.python_version }},<4.0"
+{%- if cookiecutter.with_sentry|int %}
+sentry-sdk = { extras = ["fastapi"], version = ">=1.40.0" }
+{%- endif %}
 {%- if cookiecutter.with_typer_cli|int %}
 typer = { extras = ["all"], version = ">=0.12.0" }
 {%- endif %}
@@ -49,8 +52,13 @@ coverage = { extras = ["toml"], version = ">=7.4.4" }
 mypy = ">=1.9.0"
 pre-commit = ">=3.7.0"
 pytest = ">=8.1.1"
+pytest-bdd = ">=7.0.0"
 pytest-mock = ">=3.14.0"
 pytest-xdist = ">=3.5.0"
+{%- if cookiecutter.with_fastapi_api|int %}
+pytest-asyncio = ">=0.23.0"
+{%- endif %}
+httpx = ">=0.27.0"
 ruff = ">=0.5.7"
 {%- if cookiecutter.development_environment == "strict" %}
 safety = ">=3.1.0"
@@ -82,13 +90,11 @@ source = ["src"]
 directory = "reports/htmlcov"
 
 [tool.coverage.xml]  # https://coverage.readthedocs.io/en/latest/cmd.html#cmd-xml
-directory = "reports/coverage.xml"
+output = "reports/coverage.xml"
 
 [tool.mypy]  # https://mypy.readthedocs.io/en/latest/config_file.html
 junit_xml = "reports/mypy.xml"
-{%- if cookiecutter.with_fastapi_api|int %}
 plugins = "pydantic.mypy"
-{%- endif %}
 {%- if cookiecutter.development_environment == "strict" %}
 strict = true
 disallow_subclassing_any = false
@@ -109,7 +115,7 @@ disable_error_code = [
   "attr-defined",  # Mocked attributes are dynamically defined
 ]
 
-{%- if cookiecutter.development_environment == "strict" and cookiecutter.with_fastapi_api|int %}
+{%- if cookiecutter.development_environment == "strict" %}
 
 [tool.pydantic-mypy]  # https://pydantic-docs.helpmanual.io/mypy_plugin/#configuring-the-plugin
 init_forbid_extra = true
@@ -119,16 +125,25 @@ warn_untyped_fields = true
 {%- endif %}
 
 [tool.pytest.ini_options]  # https://docs.pytest.org/en/latest/reference/reference.html#ini-options-ref
-addopts = "--color=yes --doctest-modules --exitfirst --failed-first{% if cookiecutter.development_environment == 'strict' %} --strict-config --strict-markers --typeguard-packages={{ cookiecutter.__project_name_snake_case }}{% endif %} --verbosity=2 --junitxml=reports/pytest.xml"
+# Development mode: {{ cookiecutter.development_environment }}
 {%- if cookiecutter.development_environment == "strict" %}
-filterwarnings = ["error", "ignore::DeprecationWarning"]
+addopts = "--color=yes --doctest-modules --exitfirst --failed-first --strict-config --strict-markers --typeguard-packages={{ cookiecutter.__project_name_snake_case }} --verbosity=2 --junitxml=reports/pytest.xml"
+filterwarnings = ["error", "ignore::DeprecationWarning", "ignore::pytest.PytestUnraisableExceptionWarning"]
+{%- else %}
+addopts = "--color=yes --doctest-modules --exitfirst --failed-first --verbosity=2 --junitxml=reports/pytest.xml"
+{%- endif %}
+{%- if cookiecutter.with_fastapi_api|int %}
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 {%- endif %}
 testpaths = ["tests"]
 xfail_strict = true
+bdd_features_base_dir = "tests/features/"
 
-[tool.ruff]  # https://github.com/charliermarsh/ruff
+[tool.ruff]  # https://docs.astral.sh/ruff/
 fix = true
 line-length = 99
+preview = true
 src = ["src", "tests"]
 target-version = "py{{ cookiecutter.python_version.split('.')[:2]|join }}"
 
@@ -138,23 +153,22 @@ select = ["ALL"]
 ignore = [
     "ANN002", # Missing type annotation for args. Complicates the code too much with the current annotation system.
     "ANN003", # Missing type annotation for kwargs. Complicates the code too much with the current annotation system.
-    "ANN101", # Missing type annotation for self in method. Useless info as it's always the same and clutters the code.
-    "ANN102", # Missing type annotation for cls in classmethod. Useless info as it's always the same and clutters the code.
     "COM812", # Missing trailing comma in a single-line list. Already handled by ruff formater
     "CPY001", # Copyright notice missing. Not always needed.
     "E501", # Line too long. Already handled by ruff formater
     "E731", # Do not assign a lambda expression. Do not agree with this rule, it improves readability as it is self-documenting the lambda function.
-    "PD901", # Do not use the variable name "df". This is a common name for dataframes and is not a problem.
     "RET504", # Unnecessary assign before return. This is not bad, it helps debugging.
     "S311", # Standard pseudo-random generators are not suitable for security/cryptographic purposes. Our use case is not security/cryptographic.
     "TRY003", # Raise exception with vanilla arguments. Creating exception classes should be done only when really needed.
     "W505", # Doc line too long. Editor autowraps doc, and it's too much work to fix it.
     "ISC001", # single-line-implicit-string-concatenation, `z = "The quick " "brown fox."` becomes `z = "The quick brown fox."` This rule may cause conflicts when used with the formatter.
+    "DOC201", # `return` is not documented in docstring. Too verbose for most projects.
+    "DOC501", # Raised exception missing from docstring. Too verbose for most projects.
 ]
 unfixable = ["ERA001", "F401", "F841", "T201", "T203"]
 {%- else %}
 select = ["A", "ASYNC", "B", "C4", "C90", "D", "DTZ", "E", "F", "FLY", "I", "ISC", "LOG", "N", "NPY", "PERF", "PGH", "PIE", "PL", "PT", "Q", "RET", "RUF", "RSE", "SIM", "TID", "UP", "W", "YTT"]
-ignore = ["D203", "D213", "E501", "G010", "PGH003", "RET504", "S101", "S307"]
+ignore = ["D203", "D213", "E501", "PGH003", "RET504"]
 unfixable = ["F401", "F841"]
 {%- endif %}
 
@@ -176,10 +190,12 @@ max-doc-length = 99
 [tool.ruff.lint.pydocstyle]
 convention = "{{ cookiecutter.__docstring_style|lower }}"
 
-[tool.ruff.lint.pylint]
+[tool.ruff.lint.pylint]  # https://docs.astral.sh/ruff/settings/#lint_pylint
 max-args = 6
+max-public-methods = 30
 
 [tool.poe.tasks]  # https://github.com/nat-n/poethepoet
+{%- if cookiecutter.with_fastapi_api|int %}
 
   [tool.poe.tasks.api]
   help = "Serve the REST API"
@@ -223,6 +239,7 @@ max-args = 6
     type = "boolean"
     name = "dev"
     options = ["--dev"]
+{%- endif %}
 
   [tool.poe.tasks.docs]
   help = "Generate this {{ cookiecutter.project_type }}'s docs"

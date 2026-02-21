@@ -93,7 +93,7 @@ and then install the dependencies and the project with
 <details>
 <summary>Extra steps</summary>
 
-After setting up the developpement environnement, you'll have to create an .env file at the root of the project, copy the contents of .env_sample into this new file and fill all of the variables with the appropriate values.
+After setting up the developpement environnement, you'll have to create an .env file at the root of the project, copy the contents of .env.example into this new file and fill all of the variables with the appropriate values.
 
 </details>
 

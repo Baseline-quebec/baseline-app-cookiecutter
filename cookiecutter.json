@@ -6,8 +6,6 @@
   "author_name": "John Smith",
   "author_email": "john@example.com",
   "python_version": "3.12",
-  "continuous_integration": "GitHub",
-  "teamwork_uri": "",
   "development_environment": [
     "strict",
     "simple"
@@ -15,6 +13,7 @@
   "with_conventional_commits": "{% if cookiecutter.development_environment == 'simple' %}0{% else %}1{% endif %}",
   "with_fastapi_api": "1",
   "with_typer_cli": "1",
+  "with_sentry": "0",
   "__docker_image": "python:$PYTHON_VERSION-slim",
   "__docstring_style": "Google",
   "__project_name_kebab_case": "{{ cookiecutter.project_name|slugify }}",
