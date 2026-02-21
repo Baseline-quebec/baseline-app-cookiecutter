@@ -159,9 +159,9 @@ select = ["ALL"]
 ignore = [
     "ANN002", # Missing type annotation for args. Complicates the code too much with the current annotation system.
     "ANN003", # Missing type annotation for kwargs. Complicates the code too much with the current annotation system.
-    "COM812", # Missing trailing comma in a single-line list. Already handled by ruff formater
+    "COM812", # Missing trailing comma in a single-line list. Already handled by ruff formatter
     "CPY001", # Copyright notice missing. Not always needed.
-    "E501", # Line too long. Already handled by ruff formater
+    "E501", # Line too long. Already handled by ruff formatter
     "E731", # Do not assign a lambda expression. Do not agree with this rule, it improves readability as it is self-documenting the lambda function.
     "RET504", # Unnecessary assign before return. This is not bad, it helps debugging.
     "S311", # Standard pseudo-random generators are not suitable for security/cryptographic purposes. Our use case is not security/cryptographic.
@@ -203,6 +203,7 @@ max-public-methods = 30
 [tool.codespell]  # https://github.com/codespell-project/codespell
 builtin = "en-GB_to_en-US,clear,code,rare"
 check-filenames = true
+ignore-words-list = "jupyter"
 skip = "./*_cache/,./.venv,./reports"
 
 [tool.poe.tasks]  # https://github.com/nat-n/poethepoet

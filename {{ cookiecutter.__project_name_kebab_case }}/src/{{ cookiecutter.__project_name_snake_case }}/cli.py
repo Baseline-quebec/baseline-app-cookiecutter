@@ -49,7 +49,7 @@ def config() -> None:
     table = Table(title="Settings")
     table.add_column("Key", style="cyan")
     table.add_column("Value", style="green")
-    for field_name, field_info in Settings.model_fields.items():
+    for field_name in Settings.model_fields:
         value = getattr(settings, field_name)
         if _verbose or field_name != "sentry_dsn":
             table.add_row(field_name, str(value))
