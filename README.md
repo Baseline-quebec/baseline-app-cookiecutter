@@ -1,4 +1,4 @@
-[![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/radix-ai/poetry-cookiecutter) [![Open in GitHub Codespaces](https://img.shields.io/static/v1?label=GitHub%20Codespaces&message=Open&color=blue&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=444870763)
+[![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/Baseline-quebec/baseline-app-cookiecutter) [![Open in GitHub Codespaces](https://img.shields.io/static/v1?label=GitHub%20Codespaces&message=Open&color=blue&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=Baseline-quebec/baseline-app-cookiecutter)
 
 # Baseline app Cookiecutter
 
@@ -15,7 +15,6 @@ A modern [Cookiecutter](https://github.com/cookiecutter/cookiecutter) template f
 - ✍️ Code formatting with [Ruff](https://github.com/charliermarsh/ruff)
 - ✅ Code linting with [Pre-commit](https://pre-commit.com/), [Mypy](https://github.com/python/mypy), and [Ruff](https://github.com/charliermarsh/ruff)
 - 🏷 Optionally follows the [Conventional Commits](https://www.conventionalcommits.org/) standard to automate [Semantic Versioning](https://semver.org/) and [Keep A Changelog](https://keepachangelog.com/) with [Commitizen](https://github.com/commitizen-tools/commitizen)
-- 💌 Verified commits with [GPG](https://gnupg.org/)
 - ♻️ Continuous integration with [GitHub Actions](https://docs.github.com/en/actions)
 - 🧪 Test coverage with [Coverage.py](https://github.com/nedbat/coveragepy)
 - 🏗 Scaffolding updates with [Cookiecutter](https://github.com/cookiecutter/cookiecutter) and [Cruft](https://github.com/cruft/cruft)
@@ -46,7 +45,7 @@ To create a new Python project with this template:
 
    <summary>⚠️ If your repository name ≠ the project's slugified name</summary>
 
-   If your repository name differs from your project's slugified name (see `project_name` in the [Template parameters](https://github.com/radix-ai/poetry-cookiecutter#-template-parameters) below), you will need to copy the scaffolded project into the repository with:
+   If your repository name differs from your project's slugified name (see `project_name` in the [Template parameters](https://github.com/Baseline-quebec/baseline-app-cookiecutter#-template-parameters) below), you will need to copy the scaffolded project into the repository with:
 
       ```sh
       cp -r {project-name}/ {repository-name}/
@@ -82,4 +81,5 @@ To update your Python project to the latest template version:
 | `python_version` <br> "3.12"                                              | The minimum Python version that the project requires.                                                                                                                                                                                                                                                                               |
 | `development_environment` <br> ["simple", "strict"]                       | Whether to configure the development environment with a focus on simplicity or with a focus on strictness. In strict mode, additional [Ruff rules](https://docs.astral.sh/ruff/rules/) are added, and tools such as [Mypy](https://github.com/python/mypy) and [Pytest](https://github.com/pytest-dev/pytest) are set to strict mode. |
 | `with_fastapi_api` <br> ["0", "1"]                                        | If "1", [FastAPI](https://github.com/tiangolo/fastapi) is added as a run time dependency, FastAPI API stubs and tests are added, a `poe api` command for serving the API is added.                                                                                                                                                  |
+| `with_conventional_commits` <br> ["0", "1"]                                | If "1", [Commitizen](https://github.com/commitizen-tools/commitizen) is added for conventional commits and semantic versioning. Automatically set to "1" in strict mode.                                                                                                                                                            |
 | `with_typer_cli` <br> ["0", "1"]                                          | If "1", [Typer](https://github.com/tiangolo/typer) is added as a run time dependency, Typer CLI stubs and tests are added, the package itself is registered as a CLI.                                                                                                                                                               |                                                                                            

@@ -7,7 +7,7 @@ repos:
     hooks:
       - id: check-useless-excludes
   - repo: https://github.com/pre-commit/pygrep-hooks
-    rev: v1.10.0
+    rev: v1.11.0
     hooks:
       - id: python-check-mock-methods
       - id: python-use-type-annotations
@@ -16,7 +16,7 @@ repos:
       - id: rst-inline-touching-normal
       - id: text-unicode-replacement-char
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v5.0.0
     hooks:
       - id: check-added-large-files
         args: ['--maxkb=50000']
@@ -36,13 +36,11 @@ repos:
       - id: destroyed-symlinks
       - id: detect-private-key
       - id: end-of-file-fixer
-        types: [python]
       - id: fix-byte-order-marker
       - id: mixed-line-ending
       - id: name-tests-test
         args: [--pytest]
       - id: trailing-whitespace
-        types: [python]
   - repo: local
     hooks:
       {%- if cookiecutter.with_conventional_commits|int %}

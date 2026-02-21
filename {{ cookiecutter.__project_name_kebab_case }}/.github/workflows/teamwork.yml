@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Teamwork Sync
     steps:
+      # TODO: Pin to a specific SHA for supply chain security
       - uses: teamwork/github-sync@master
         with:
           GITHUB_TOKEN: {% raw %}${{ secrets.GITHUB_TOKEN }}{% endraw %}
