@@ -5,22 +5,22 @@
 A modern [Cookiecutter](https://github.com/cookiecutter/cookiecutter) template for scaffolding Python packages and apps.
 
 
-## 🎁 Features
+## Features
 
-- 🧑‍💻 Quick and reproducible development environments with VS Code's [Dev Containers](https://code.visualstudio.com/docs/devcontainers/containers), PyCharm's [Docker Compose interpreter](https://www.jetbrains.com/help/pycharm/using-docker-compose-as-a-remote-interpreter.html#docker-compose-remote), and [GitHub Codespaces](https://github.com/features/codespaces)
-- 🌈 Cross-platform support for Linux, macOS (Apple silicon and Intel), and Windows
-- 🐚 Modern shell prompt with [Starship](https://github.com/starship/starship)
-- 📦 Packaging and dependency management with [Poetry](https://github.com/python-poetry/poetry)
-- ⚡️ Task running with [Poe the Poet](https://github.com/nat-n/poethepoet)
-- ✍️ Code formatting with [Ruff](https://github.com/charliermarsh/ruff)
-- ✅ Code linting with [Pre-commit](https://pre-commit.com/), [Mypy](https://github.com/python/mypy), and [Ruff](https://github.com/charliermarsh/ruff)
-- 🏷 Optionally follows the [Conventional Commits](https://www.conventionalcommits.org/) standard to automate [Semantic Versioning](https://semver.org/) and [Keep A Changelog](https://keepachangelog.com/) with [Commitizen](https://github.com/commitizen-tools/commitizen)
-- ♻️ Continuous integration with [GitHub Actions](https://docs.github.com/en/actions)
-- 🧪 Test coverage with [Coverage.py](https://github.com/nedbat/coveragepy)
-- 🏗 Scaffolding updates with [Cookiecutter](https://github.com/cookiecutter/cookiecutter) and [Cruft](https://github.com/cruft/cruft)
-- 🧰 Dependency updates with [Dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/about-dependabot-version-updates)
+- Quick and reproducible development environments with VS Code's [Dev Containers](https://code.visualstudio.com/docs/devcontainers/containers), PyCharm's [Docker Compose interpreter](https://www.jetbrains.com/help/pycharm/using-docker-compose-as-a-remote-interpreter.html#docker-compose-remote), and [GitHub Codespaces](https://github.com/features/codespaces)
+- Cross-platform support for Linux, macOS (Apple silicon and Intel), and Windows
+- Modern shell prompt with [Starship](https://github.com/starship/starship)
+- Packaging and dependency management with [Poetry](https://github.com/python-poetry/poetry)
+- Task running with [Poe the Poet](https://github.com/nat-n/poethepoet)
+- Code formatting with [Ruff](https://github.com/charliermarsh/ruff)
+- Code linting with [Pre-commit](https://pre-commit.com/), [Mypy](https://github.com/python/mypy), and [Ruff](https://github.com/charliermarsh/ruff)
+- Optionally follows the [Conventional Commits](https://www.conventionalcommits.org/) standard to automate [Semantic Versioning](https://semver.org/) and [Keep A Changelog](https://keepachangelog.com/) with [Commitizen](https://github.com/commitizen-tools/commitizen)
+- Continuous integration with [GitHub Actions](https://docs.github.com/en/actions)
+- Test coverage with [Coverage.py](https://github.com/nedbat/coveragepy)
+- Scaffolding updates with [Cookiecutter](https://github.com/cookiecutter/cookiecutter) and [Cruft](https://github.com/cruft/cruft)
+- Dependency updates with [Dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/about-dependabot-version-updates)
 
-## ✨ Using
+## Using
 
 ### Creating a new Python project
 
@@ -42,9 +42,9 @@ To create a new Python project with this template:
 
    <details>
 
-   <summary>⚠️ If your repository name ≠ the project's slugified name</summary>
+   <summary>If your repository name ≠ the project's slugified name</summary>
 
-   If your repository name differs from your project's slugified name (see `project_name` in the [Template parameters](https://github.com/Baseline-quebec/baseline-app-cookiecutter#-template-parameters) below), you will need to copy the scaffolded project into the repository with:
+   If your repository name differs from your project's slugified name (see `project_name` in the [Template parameters](https://github.com/Baseline-quebec/baseline-app-cookiecutter#template-parameters) below), you will need to copy the scaffolded project into the repository with:
 
       ```sh
       cp -r {project-name}/ {repository-name}/
@@ -66,7 +66,55 @@ To update your Python project to the latest template version:
 
 2. If any of the file updates failed, resolve them by inspecting the corresponding `.rej` files.
 
-## 🤓 Template parameters
+## How-to
+
+### Run the development server (FastAPI)
+
+```sh
+poetry run poe api
+```
+
+### Run the CLI
+
+```sh
+poetry run my-app info
+poetry run my-app greet "World"
+```
+
+### Run tests
+
+```sh
+poetry run poe test
+```
+
+### Run linting
+
+```sh
+poetry run poe lint
+```
+
+### Add a new dependency
+
+```sh
+poetry add <package>           # runtime dependency
+poetry add --group dev <pkg>   # development dependency
+```
+
+### Configure environment variables
+
+Copy the example file and fill in the values:
+
+```sh
+cp .env.example .env
+```
+
+### Build and run with Docker
+
+```sh
+docker compose up --build
+```
+
+## Template parameters
 
 
 | Parameter                                                                 | Description                                                                                                                                                                                                                                                                                                                         |
