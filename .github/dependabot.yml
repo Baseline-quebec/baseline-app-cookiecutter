@@ -1,0 +1,42 @@
+version: 2
+
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "ci"
+      include: scope
+    groups:
+      ci-dependencies:
+        patterns:
+        - "*"
+        update-types:
+        - "minor"
+        - "patch"
+      ci-major-updates:
+        patterns:
+        - "*"
+        update-types:
+        - "major"
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore"
+      prefix-development: "build"
+      include: scope
+    groups:
+      dependencies:
+        patterns:
+        - "*"
+        update-types:
+        - "minor"
+        - "patch"
+      major-updates:
+        patterns:
+        - "*"
+        update-types:
+        - "major"

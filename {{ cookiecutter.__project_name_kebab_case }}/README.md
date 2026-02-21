@@ -4,10 +4,16 @@
 
 {{ cookiecutter.project_description }}
 
+## Documentation
+
+- [Architecture Decision Records](docs/decisions/)
+- [Confluence — Guide pratique](https://confluence.example.com/{{ cookiecutter.__project_name_kebab_case }})
+
 ## Table of contents
 
-1. [Setup](#setup)
-2. [Usage](#usage)
+1. [Documentation](#documentation)
+2. [Setup](#setup)
+3. [Usage](#usage)
 
 ## Setup
 

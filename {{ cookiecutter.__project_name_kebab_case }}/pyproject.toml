@@ -9,6 +9,7 @@ description = "{{ cookiecutter.project_description }}"
 authors = ["{{ cookiecutter.author_name }} <{{ cookiecutter.author_email }}>"]
 readme = "README.md"
 repository = "{{ cookiecutter.project_url }}"
+license = "{{ cookiecutter.license }}"
 {%- if cookiecutter.with_conventional_commits|int %}
 
 [tool.commitizen]  # https://commitizen-tools.github.io/commitizen/config/
@@ -25,52 +26,55 @@ version_provider = "poetry"
 
 [tool.poetry.dependencies]  # https://python-poetry.org/docs/dependency-specification/
 {%- if cookiecutter.with_fastapi_api|int %}
-fastapi = { extras = ["all"], version = ">=0.110.1" }
-loguru = "^0.7.3"
-gunicorn = ">=21.2.0"
+fastapi = { extras = ["all"], version = ">=0.115.0" }
+loguru = ">=0.7.3"
+gunicorn = ">=23.0.0"
 {%- endif %}
 {%- if cookiecutter.project_type == "app" %}
-poethepoet = ">=0.25.0"
+poethepoet = ">=0.32.0"
 {%- endif %}
-pydantic-settings = ">=2.2.0"
+pydantic-settings = ">=2.7.0"
 python = ">={{ cookiecutter.python_version }},<4.0"
 {%- if cookiecutter.with_sentry|int %}
-sentry-sdk = { extras = ["fastapi"], version = ">=1.40.0" }
+sentry-sdk = { extras = ["fastapi"], version = ">=2.19.0" }
 {%- endif %}
 {%- if cookiecutter.with_typer_cli|int %}
-typer = { extras = ["all"], version = ">=0.12.0" }
+typer = { extras = ["all"], version = ">=0.15.0" }
 {%- endif %}
 {%- if cookiecutter.with_fastapi_api|int %}
-uvicorn = { extras = ["standard"], version = ">=0.29.0" }
+uvicorn = { extras = ["standard"], version = ">=0.34.0" }
 {%- endif %}
 
 [tool.poetry.group.test.dependencies]  # https://python-poetry.org/docs/master/managing-dependencies/
 {%- if cookiecutter.with_conventional_commits|int %}
-commitizen = ">=3.21.3"
+commitizen = ">=4.1.0"
 {%- endif %}
-coverage = { extras = ["toml"], version = ">=7.4.4" }
-mypy = ">=1.9.0"
-pre-commit = ">=3.7.0"
-pytest = ">=8.1.1"
-pytest-bdd = ">=7.0.0"
+coverage = { extras = ["toml"], version = ">=7.6.0" }
+mypy = ">=1.14.0"
+pre-commit = ">=4.0.0"
+pytest = ">=8.3.0"
+{%- if cookiecutter.with_pytest_bdd|int %}
+pytest-bdd = ">=8.1.0"
+{%- endif %}
 pytest-mock = ">=3.14.0"
 pytest-xdist = ">=3.5.0"
 {%- if cookiecutter.with_fastapi_api|int %}
-pytest-asyncio = ">=0.23.0"
+pytest-asyncio = ">=0.25.0"
 {%- endif %}
-httpx = ">=0.27.0"
-ruff = ">=0.5.7"
+httpx = ">=0.28.0"
+codespell = ">=2.4.0"
+ruff = ">=0.11.0"
 {%- if cookiecutter.development_environment == "strict" %}
-safety = ">=3.1.0"
+safety = ">=3.2.0"
 shellcheck-py = ">=0.10.0.1"
-typeguard = ">=4.2.1"
+typeguard = ">=4.4.0"
 {%- endif %}
 
 [tool.poetry.group.dev.dependencies]  # https://python-poetry.org/docs/master/managing-dependencies/
 cruft = ">=2.15.0"
 ipykernel = ">=6.29.4"
 ipywidgets = ">=8.1.2"
-pdoc = ">=14.4.0"
+mkdocs-material = ">=9.5.0"
 
 [tool.coverage.report]  # https://coverage.readthedocs.io/en/latest/config.html#report
 {%- if cookiecutter.development_environment == "strict" %}
@@ -138,7 +142,9 @@ asyncio_default_fixture_loop_scope = "function"
 {%- endif %}
 testpaths = ["tests"]
 xfail_strict = true
+{%- if cookiecutter.with_pytest_bdd|int %}
 bdd_features_base_dir = "tests/features/"
+{%- endif %}
 
 [tool.ruff]  # https://docs.astral.sh/ruff/
 fix = true
@@ -153,9 +159,9 @@ select = ["ALL"]
 ignore = [
     "ANN002", # Missing type annotation for args. Complicates the code too much with the current annotation system.
     "ANN003", # Missing type annotation for kwargs. Complicates the code too much with the current annotation system.
-    "COM812", # Missing trailing comma in a single-line list. Already handled by ruff formater
+    "COM812", # Missing trailing comma in a single-line list. Already handled by ruff formatter
     "CPY001", # Copyright notice missing. Not always needed.
-    "E501", # Line too long. Already handled by ruff formater
+    "E501", # Line too long. Already handled by ruff formatter
     "E731", # Do not assign a lambda expression. Do not agree with this rule, it improves readability as it is self-documenting the lambda function.
     "RET504", # Unnecessary assign before return. This is not bad, it helps debugging.
     "S311", # Standard pseudo-random generators are not suitable for security/cryptographic purposes. Our use case is not security/cryptographic.
@@ -193,6 +199,12 @@ convention = "{{ cookiecutter.__docstring_style|lower }}"
 [tool.ruff.lint.pylint]  # https://docs.astral.sh/ruff/settings/#lint_pylint
 max-args = 6
 max-public-methods = 30
+
+[tool.codespell]  # https://github.com/codespell-project/codespell
+builtin = "en-GB_to_en-US,clear,code,rare"
+check-filenames = true
+ignore-words-list = "jupyter"
+skip = "./*_cache/,./.venv,./reports"
 
 [tool.poe.tasks]  # https://github.com/nat-n/poethepoet
 {%- if cookiecutter.with_fastapi_api|int %}
@@ -242,25 +254,21 @@ max-public-methods = 30
 {%- endif %}
 
   [tool.poe.tasks.docs]
-  help = "Generate this {{ cookiecutter.project_type }}'s docs"
-  cmd = """
-    pdoc
-      --docformat $docformat
-      --output-directory $outputdirectory
-      {{ cookiecutter.__project_name_snake_case }}
+  help = "Build or serve the documentation"
+  shell = """
+    if [ $serve ]
+    then {
+      mkdocs serve
+    } else {
+      mkdocs build
+    } fi
     """
 
     [[tool.poe.tasks.docs.args]]
-    help = "The docstring style (default: {{ cookiecutter.__docstring_style|lower }})"
-    name = "docformat"
-    options = ["--docformat"]
-    default = "{{ cookiecutter.__docstring_style|lower }}"
-
-    [[tool.poe.tasks.docs.args]]
-    help = "The output directory (default: docs)"
-    name = "outputdirectory"
-    options = ["--output-directory"]
-    default = "docs"
+    help = "Serve the documentation locally with live reload"
+    type = "boolean"
+    name = "serve"
+    options = ["--serve"]
 
   [tool.poe.tasks.lint]
   help = "Lint this {{ cookiecutter.project_type }}"
@@ -291,3 +299,7 @@ max-public-methods = 30
 
     [[tool.poe.tasks.test.sequence]]
     cmd = "coverage xml"
+
+  [tool.poe.tasks.update]
+  help = "Update the project from the cookiecutter template"
+  cmd = "cruft update --cookiecutter-input"

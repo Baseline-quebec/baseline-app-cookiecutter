@@ -93,7 +93,7 @@ and then install the dependencies and the project with
 <details>
 <summary>Extra steps</summary>
 
-After setting up the developpement environnement, you'll have to create an .env file at the root of the project, copy the contents of .env.example into this new file and fill all of the variables with the appropriate values.
+After setting up the development environment, you'll have to create an .env file at the root of the project, copy the contents of .env.example into this new file and fill all of the variables with the appropriate values.
 
 </details>
 
@@ -107,7 +107,7 @@ The following tools will be automatically installed by poetry to support develop
 
 - _pytest_: This project uses the `pytest` framework for unit testing.
 
-- _ruff_: This project uses `ruff` to lint and automatically format code in order to maintain consistent code across all project and developpers.
+- _ruff_: This project uses `ruff` to lint and automatically format code in order to maintain consistent code across all project and developers.
 
 - _mypy_: This project uses the static type checker `mypy` to enforce type annotation and spot bugs before they can happen.
 

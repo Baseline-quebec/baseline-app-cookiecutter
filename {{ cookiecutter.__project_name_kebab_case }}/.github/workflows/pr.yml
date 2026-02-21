@@ -1,0 +1,22 @@
+{%- if cookiecutter.with_conventional_commits|int %}
+name: PR
+
+on:
+  pull_request:
+    types: [edited, opened, reopened, synchronize]
+
+jobs:
+  title:
+    runs-on: ubuntu-latest
+    name: Check PR title
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "{{ cookiecutter.python_version }}"
+
+      - name: Check PR title
+        run: |
+          pip install commitizen
+          cz check --message "{% raw %}${{ github.event.pull_request.title }}{% endraw %}"
+{%- endif %}

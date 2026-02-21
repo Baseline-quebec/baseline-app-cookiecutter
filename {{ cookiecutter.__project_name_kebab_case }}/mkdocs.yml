@@ -1,0 +1,12 @@
+site_name: {{ cookiecutter.project_name }}
+site_description: {{ cookiecutter.project_description }}
+site_url: {{ cookiecutter.project_url }}
+
+theme:
+  name: material
+
+nav:
+  - Home: index.md
+
+plugins:
+  - search

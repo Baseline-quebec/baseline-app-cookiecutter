@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -31,10 +31,21 @@ jobs:
       - name: Install @devcontainers/cli
         run: npm install --location=global @devcontainers/cli@latest
 
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: {% raw %}${{{% endraw %} runner.os }}-docker-{% raw %}${{{% endraw %} hashFiles('**/poetry.lock') }}
+          restore-keys: |
+            {% raw %}${{{% endraw %} runner.os }}-docker-
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Start Dev Container
         run: |
           git config --global init.defaultBranch main
-          PYTHON_VERSION={% raw %}${{{% endraw %} matrix.python-version }} devcontainer up --workspace-folder .
+          PYTHON_VERSION={% raw %}${{{% endraw %} matrix.python-version }} BUILDKIT_INLINE_CACHE=1 devcontainer up --workspace-folder .
 
       - name: Lint {{ cookiecutter.project_type }}
         run: devcontainer exec --workspace-folder . poe lint
@@ -46,5 +57,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           path: reports/htmlcov/
-          name: coverage-report
+          name: coverage-report-{% raw %}${{{% endraw %} matrix.python-version }}
           retention-days: 7

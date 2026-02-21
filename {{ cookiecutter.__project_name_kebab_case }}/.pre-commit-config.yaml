@@ -16,7 +16,7 @@ repos:
       - id: rst-inline-touching-normal
       - id: text-unicode-replacement-char
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
         args: ['--maxkb=50000']
@@ -100,3 +100,9 @@ repos:
         language: system
         types: [python]
         pass_filenames: false
+      - id: codespell
+        name: codespell
+        entry: codespell
+        require_serial: true
+        language: system
+        types_or: [markdown, python, pyi, toml, yaml]

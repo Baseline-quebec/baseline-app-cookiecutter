@@ -1,4 +1,4 @@
-name: Test
+name: Integration
 
 on:
   push:
@@ -14,13 +14,19 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.12", "3.13"]
-        project-type: ["app"]
+        include:
+          - python-version: "3.12"
+            variant: full
+            extra-context: '{"project_type": "app", "project_name": "My Project", "python_version": "3.12", "with_fastapi_api": "1", "with_typer_cli": "1", "with_sentry": "0"}'
+          - python-version: "3.13"
+            variant: minimal
+            extra-context: '{"project_type": "app", "project_name": "My Project", "python_version": "3.13", "with_fastapi_api": "0", "with_typer_cli": "0", "with_sentry": "0"}'
 
-    name: Python ${{ matrix.python-version }} app
+    name: Python ${{ matrix.python-version }} — ${{ matrix.variant }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           path: template
 
@@ -28,11 +34,16 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
 
       - name: Scaffold Python project
         run: |
           pip install --no-input cruft
-          cruft create --no-input --extra-context '{"project_type": "app", "project_name": "My Project", "python_version": "${{ matrix.python-version }}", "with_fastapi_api": "1", "with_typer_cli": "1", "with_sentry": "0"}' ./template/
+          cruft create --no-input --extra-context '${{ matrix.extra-context }}' ./template/
+
+      - name: Verify cruft link
+        run: cruft check
+        working-directory: ./my-project/
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
