@@ -10,7 +10,7 @@ from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from loguru import logger
 from starlette.exceptions import HTTPException as StarletteHTTPException
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from {{ cookiecutter.__project_name_snake_case }}.models import HealthResponse, Item, ItemCreate
 from {{ cookiecutter.__project_name_snake_case }}.services import ItemService
@@ -59,7 +59,7 @@ ItemServiceDep = Annotated[ItemService, Depends(get_item_service)]
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
     """Log method, path, status code, and duration for every request."""
 
-    async def dispatch(self, request: Request, call_next: ...) -> Response:  # type: ignore[override]  # noqa: PLR6301
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:  # noqa: PLR6301
         """Process request and log timing information."""
         start = time.perf_counter()
         response: Response = await call_next(request)
