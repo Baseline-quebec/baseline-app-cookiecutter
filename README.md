@@ -18,6 +18,7 @@ A modern [Cookiecutter](https://github.com/cookiecutter/cookiecutter) template f
 - Optional [Typer](https://github.com/tiangolo/typer) CLI with Rich output
 - Optional [pytest-bdd](https://github.com/pytest-dev/pytest-bdd) for BDD-style tests with Gherkin feature files
 - Continuous integration with [GitHub Actions](https://docs.github.com/en/actions)
+- [LLM Configuration Scanner](https://github.com/Baseline-quebec/tracking-llm-discontinued) to detect deprecated LLM model references
 - Test coverage with [Coverage.py](https://github.com/nedbat/coveragepy)
 - Scaffolding updates with [Cruft](https://github.com/cruft/cruft)
 - Dependency updates with [Dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/about-dependabot-version-updates)
@@ -95,7 +96,7 @@ baseline-app-cookiecutter/
 │   └── test_cookiecutter.py           # Unit tests for the template
 ├── {{ cookiecutter.__project_name_kebab_case }}/
 │   ├── .devcontainer/                 # Dev Container config
-│   ├── .github/workflows/             # CI for generated projects
+│   ├── .github/workflows/             # CI + LLM scan for generated projects
 │   ├── src/{{ ... }}/                 # Source code stubs
 │   ├── tests/                         # Test stubs
 │   ├── pyproject.toml                 # Poetry config
