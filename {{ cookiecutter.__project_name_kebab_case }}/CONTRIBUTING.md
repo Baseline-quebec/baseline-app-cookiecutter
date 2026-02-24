@@ -111,7 +111,7 @@ The following tools will be automatically installed by poetry to support develop
 
 - _commitizen_: This project follows the [Conventional Commits](https://www.conventionalcommits.org/) standard to automate [Semantic Versioning](https://semver.org/) and [Keep A Changelog](https://keepachangelog.com/) with [Commitizen](https://github.com/commitizen-tools/commitizen).
 
-- _pre-commit_: This project uses pre-commit hooks that enforces the submitted code to respect conventions and high quality standards.
+- _pre-commit_: This project uses pre-commit hooks that enforces the submitted code to respect conventions and high quality standards. This includes [detect-secrets](https://github.com/Yelp/detect-secrets) which prevents accidentally committing credentials (API keys, tokens, passwords). If a secret is detected, the commit is blocked. To update the baseline after a false positive: `detect-secrets scan --baseline .secrets.baseline`.
 
 - _pytest_: This project uses the `pytest` framework for unit testing.
 

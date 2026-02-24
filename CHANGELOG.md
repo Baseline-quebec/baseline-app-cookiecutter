@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - codespell linter in pre-commit and pyproject.toml
 - MkDocs Material for documentation (replaces pdoc)
 - PR title check workflow for generated projects (`pr.yml`)
+- `detect-secrets` (Yelp) pre-commit hook to block accidental credential commits
 - `actionlint` pre-commit hook for GitHub Actions validation
 - `ruff-check` and `ruff-format` pre-commit hooks for template code
 - `pre-commit-hooks` (check-yaml, check-toml, end-of-file-fixer, trailing-whitespace)
