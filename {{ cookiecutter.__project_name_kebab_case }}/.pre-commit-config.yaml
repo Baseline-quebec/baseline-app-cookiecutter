@@ -35,17 +35,17 @@ repos:
       - id: debug-statements
       - id: destroyed-symlinks
       - id: detect-private-key
-  - repo: https://github.com/Yelp/detect-secrets
-    rev: v1.5.0
-    hooks:
-      - id: detect-secrets
-        args: ['--baseline', '.secrets.baseline']
       - id: end-of-file-fixer
       - id: fix-byte-order-marker
       - id: mixed-line-ending
       - id: name-tests-test
         args: [--pytest-test-first]
       - id: trailing-whitespace
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+      - id: detect-secrets
+        args: ['--baseline', '.secrets.baseline']
   - repo: local
     hooks:
       {%- if cookiecutter.with_conventional_commits|int %}
