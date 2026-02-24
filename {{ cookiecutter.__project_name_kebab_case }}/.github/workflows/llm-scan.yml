@@ -1,0 +1,31 @@
+name: LLM Configuration Scan
+
+on:
+  push:
+    tags:
+      - "*"
+  schedule:
+    - cron: "0 8 1,15 * *"  # Bi-weekly: 1st and 15th of each month at 8:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: llm-scan-{% raw %}${{{% endraw %} github.repository }}
+  cancel-in-progress: true
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run LLM scanner
+        id: scan
+        uses: Baseline-quebec/tracking-llm-discontinued@main
+        with:
+          repo-name: {% raw %}${{{% endraw %} github.repository }}
+          assignees: {% raw %}${{{% endraw %} vars.LLM_SCAN_ASSIGNEES || '' }}
+
