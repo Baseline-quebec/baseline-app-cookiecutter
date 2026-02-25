@@ -28,4 +28,3 @@ jobs:
         with:
           repo-name: {% raw %}${{{% endraw %} github.repository }}
           assignees: {% raw %}${{{% endraw %} vars.LLM_SCAN_ASSIGNEES || '' }}
-
