@@ -62,3 +62,39 @@ poetry run poe api --dev      # start FastAPI dev server
 - **CLI**: [Typer](https://typer.tiangolo.com/) + [Rich](https://rich.readthedocs.io/)
 {%- endif %}
 - **Config**: [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) with `.env` file
+
+## Agents IA
+
+Ce projet est configuré pour Claude Code avec les serveurs MCP et les agents Baseline.
+
+### Configuration rapide
+
+Pour configurer les agents spécialisés dans ce projet :
+
+```
+Lis ~/Claude/agents-dev/00-contremaitre.md et configure ce projet.
+```
+
+### Agents disponibles
+
+Le dossier `~/Claude/agents-dev/` contient les agents organisés par domaine. Le domaine principal est **programmation** :
+
+- `@dev` — Développement et implémentation
+- `@qa` — Tests et qualité
+- `@architecte` — Architecture et design
+- `@revue` — Revue de code
+
+### Fichiers de référence
+
+- **Orchestration** : `~/Claude/agents-dev/00-contremaitre.md`
+- **Conventions** : `~/Claude/agents-dev/programmation/knowledge/conventions-baseline.md`
+- **Architecture** : `~/Claude/agents-dev/programmation/knowledge/architecture-baseline.md`
+
+### Serveurs MCP (`.mcp.json`)
+
+| Serveur | Usage |
+|---------|-------|
+| `context7` | Documentation technique à jour pour les librairies |
+| `playwright` | Automatisation navigateur, tests E2E, screenshots |
+
+Les serveurs org-spécifiques (atlassian, tempo, hubspot) s'ajoutent via le Contremaître.
