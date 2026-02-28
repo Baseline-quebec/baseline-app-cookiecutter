@@ -720,3 +720,105 @@ class TestReadmeConditional:
         project = bake(output_dir)
         content = (project / "README.md").read_text()
         assert "poe docs" in content
+
+
+# ---------------------------------------------------------------------------
+# Claude Code configuration tests
+# ---------------------------------------------------------------------------
+
+
+class TestClaudeCodeConfig:
+    """Verify Claude Code configuration files."""
+
+    def test_mcp_json_exists(self, output_dir: Path) -> None:
+        """.mcp.json is generated."""
+        project = bake(output_dir)
+        assert (project / ".mcp.json").is_file()
+
+    def test_mcp_json_has_context7(self, output_dir: Path) -> None:
+        """.mcp.json contains context7 server."""
+        import json
+
+        project = bake(output_dir)
+        content = json.loads((project / ".mcp.json").read_text())
+        assert "context7" in content["mcpServers"]
+        assert content["mcpServers"]["context7"]["command"] == "npx"
+
+    def test_mcp_json_has_playwright(self, output_dir: Path) -> None:
+        """.mcp.json contains playwright server."""
+        import json
+
+        project = bake(output_dir)
+        content = json.loads((project / ".mcp.json").read_text())
+        assert "playwright" in content["mcpServers"]
+        assert content["mcpServers"]["playwright"]["command"] == "npx"
+
+    def test_claude_settings_local_exists(self, output_dir: Path) -> None:
+        """.claude/settings.local.json is generated."""
+        project = bake(output_dir)
+        assert (project / ".claude" / "settings.local.json").is_file()
+
+    def test_claude_settings_local_enables_servers(self, output_dir: Path) -> None:
+        """.claude/settings.local.json enables MCP servers."""
+        import json
+
+        project = bake(output_dir)
+        content = json.loads(
+            (project / ".claude" / "settings.local.json").read_text()
+        )
+        assert "context7" in content["enabledMcpjsonServers"]
+        assert "playwright" in content["enabledMcpjsonServers"]
+
+    def test_gitignore_has_claude_settings(self, output_dir: Path) -> None:
+        """.gitignore contains .claude/settings.local.json."""
+        project = bake(output_dir)
+        content = (project / ".gitignore").read_text()
+        assert ".claude/settings.local.json" in content
+
+    def test_gitignore_does_not_exclude_mcp_json(self, output_dir: Path) -> None:
+        """.gitignore does not exclude .mcp.json."""
+        project = bake(output_dir)
+        content = (project / ".gitignore").read_text()
+        assert ".mcp.json" not in content
+
+    def test_claude_settings_json_exists(self, output_dir: Path) -> None:
+        """.claude/settings.json is generated."""
+        project = bake(output_dir)
+        assert (project / ".claude" / "settings.json").is_file()
+
+    def test_claude_settings_has_permissions(self, output_dir: Path) -> None:
+        """.claude/settings.json has Dev Flow permission profile."""
+        import json
+
+        project = bake(output_dir)
+        content = json.loads((project / ".claude" / "settings.json").read_text())
+        allow = content["permissions"]["allow"]
+        deny = content["permissions"]["deny"]
+        assert "Bash(poetry *)" in allow
+        assert "Bash(git *)" in allow
+        assert "Bash(gh pr *)" in allow
+        assert "Edit" in allow
+        assert "Write" in allow
+        assert "mcp__context7__query-docs" in allow
+        assert "mcp__playwright__browser_snapshot" in allow
+        assert "Bash(git reset --hard *)" in deny
+        assert "Bash(rm *)" in deny
+
+    def test_claude_settings_has_plugins(self, output_dir: Path) -> None:
+        """.claude/settings.json enables superpowers and code-review plugins."""
+        import json
+
+        project = bake(output_dir)
+        content = json.loads((project / ".claude" / "settings.json").read_text())
+        plugins = content["enabledPlugins"]
+        assert plugins["superpowers@claude-plugins-official"] is True
+        assert plugins["code-review@claude-plugins-official"] is True
+
+    def test_claude_md_has_agents_ia_section(self, output_dir: Path) -> None:
+        """CLAUDE.md contains the Agents IA section."""
+        project = bake(output_dir)
+        content = (project / "CLAUDE.md").read_text()
+        assert "## Agents IA" in content
+        assert "contremaitre" in content.lower()
+        assert "context7" in content
+        assert "playwright" in content
