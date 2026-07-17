@@ -9,7 +9,7 @@ services:
         UID: ${UID:-1000}
         GID: ${GID:-1000}
     environment:
-      - POETRY_PYPI_TOKEN_PYPI
+      - UV_PUBLISH_TOKEN
     volumes:
       - ..:/workspaces
       - command-history-volume:/home/user/.history/
@@ -23,7 +23,7 @@ services:
       [
         "sh",
         "-c",
-        "sudo chown user $$SSH_AUTH_SOCK && cp --update /opt/build/poetry/poetry.lock /workspaces/{{ cookiecutter.__project_name_kebab_case }}/ && mkdir -p /workspaces/{{ cookiecutter.__project_name_kebab_case }}/.git/hooks/ && cp --update /opt/build/git/* /workspaces/{{ cookiecutter.__project_name_kebab_case }}/.git/hooks/ && zsh"
+        "sudo chown user $$SSH_AUTH_SOCK && cp --update /opt/build/uv/uv.lock /workspaces/{{ cookiecutter.__project_name_kebab_case }}/ && mkdir -p /workspaces/{{ cookiecutter.__project_name_kebab_case }}/.git/hooks/ && cp --update /opt/build/git/* /workspaces/{{ cookiecutter.__project_name_kebab_case }}/.git/hooks/ && zsh"
       ]
     environment:
       - SSH_AUTH_SOCK=/run/host-services/ssh-auth.sock

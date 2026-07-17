@@ -22,10 +22,10 @@ cp .env.example .env
 Requirements:
 
 - [Python {{ cookiecutter.python_version }}](https://www.python.org/downloads/)
-- [Poetry](https://python-poetry.org/docs/#installation)
+- [uv](https://docs.astral.sh/uv/getting-started/installation/)
 
 ```bash
-poetry install
+uv sync
 ```
 
 ### Container setup
@@ -55,10 +55,10 @@ Access the API at [localhost:8000](http://localhost:8000) and the docs at [local
 ### CLI
 
 ```bash
-poetry run {{ cookiecutter.__project_name_kebab_case }} info
-poetry run {{ cookiecutter.__project_name_kebab_case }} config
+uv run {{ cookiecutter.__project_name_kebab_case }} info
+uv run {{ cookiecutter.__project_name_kebab_case }} config
 {%- if cookiecutter.with_fastapi_api|int %}
-poetry run {{ cookiecutter.__project_name_kebab_case }} health
+uv run {{ cookiecutter.__project_name_kebab_case }} health
 {%- endif %}
 ```
 {%- endif %}
@@ -87,7 +87,7 @@ poe docs --serve  # serve documentation locally
 │   └── services.py                                    # business logic
 ├── tests/                                             # test suite
 ├── docs/                                              # MkDocs + ADRs
-├── pyproject.toml                                     # Poetry config
+├── pyproject.toml                                     # project config (uv)
 ├── Dockerfile                                         # production image
 └── docker-compose.yml                                 # local development
 ```

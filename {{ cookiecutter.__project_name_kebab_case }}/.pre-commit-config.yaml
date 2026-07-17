@@ -95,10 +95,11 @@ repos:
         types: [shell]
         pass_filenames: false
       {%- endif %}
-      - id: poetry-check
-        name: poetry check
-        entry: poetry check
+      - id: uv-lock-check
+        name: uv lock check
+        entry: uv lock --check
         language: system
+        files: '^(pyproject\.toml|uv\.lock)$'
         pass_filenames: false
       - id: mypy
         name: mypy

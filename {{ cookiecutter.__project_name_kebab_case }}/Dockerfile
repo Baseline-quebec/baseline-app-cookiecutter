@@ -2,6 +2,10 @@
 ARG PYTHON_VERSION={{ cookiecutter.python_version }}
 FROM {{ cookiecutter.__docker_image }} AS base
 
+# Install uv by copying its static binary from the official image [1].
+# [1] https://docs.astral.sh/uv/guides/integration/docker/#installing-uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /usr/local/bin/
+
 # Remove docker-clean so we can keep the apt cache in Docker build cache.
 RUN rm /etc/apt/apt.conf.d/docker-clean
 
@@ -11,13 +15,12 @@ RUN rm /etc/apt/apt.conf.d/docker-clean
 ENV PYTHONFAULTHANDLER=1
 ENV PYTHONUNBUFFERED=1
 
-# Install Poetry in a separate venv so it doesn't pollute the main venv.
-ENV POETRY_VERSION=2.3.2
-ENV POETRY_VIRTUAL_ENV=/opt/poetry-env
-RUN --mount=type=cache,target=/root/.cache/pip/ \
-    python -m venv $POETRY_VIRTUAL_ENV && \
-    $POETRY_VIRTUAL_ENV/bin/pip install poetry~=$POETRY_VERSION && \
-    ln -s $POETRY_VIRTUAL_ENV/bin/poetry /usr/local/bin/poetry
+# Configure uv: compile bytecode for faster startup, copy packages into the venv
+# (required when mounting the cache), and never download a managed Python [1].
+# [1] https://docs.astral.sh/uv/reference/environment/
+ENV UV_COMPILE_BYTECODE=1
+ENV UV_LINK_MODE=copy
+ENV UV_PYTHON_DOWNLOADS=never
 
 # Install compilers that may be required for certain packages or platforms.
 RUN --mount=type=cache,target=/var/cache/apt/ \
@@ -37,17 +40,20 @@ USER user
 # Create and activate a virtual environment.
 ENV VIRTUAL_ENV=/opt/{{ cookiecutter.__project_name_kebab_case }}-env
 ENV PATH=$VIRTUAL_ENV/bin:$PATH
-RUN python -m venv $VIRTUAL_ENV
+ENV UV_PROJECT_ENVIRONMENT=$VIRTUAL_ENV
+RUN uv venv $VIRTUAL_ENV
 
 # Set the working directory.
 WORKDIR /workspaces/{{ cookiecutter.__project_name_kebab_case }}/
 
-# Install the run time Python dependencies in the virtual environment.
-COPY --chown=user:user poetry.lock* pyproject.toml /workspaces/{{ cookiecutter.__project_name_kebab_case }}/
-RUN mkdir -p /home/user/.cache/pypoetry/ && mkdir -p /home/user/.config/pypoetry/ && \
-    mkdir -p src/{{ cookiecutter.__project_name_snake_case }}/ && touch src/{{ cookiecutter.__project_name_snake_case }}/__init__.py && touch README.md
-RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/pypoetry/ \
-    poetry install --only main --all-extras --no-interaction
+# Install the run time Python dependencies in the virtual environment. The lock file is
+# optional here (a freshly scaffolded project has none): uv resolves and writes uv.lock
+# on the first build, which is then surfaced back to the workspace in the dev stage.
+COPY --chown=user:user pyproject.toml uv.lock* /workspaces/{{ cookiecutter.__project_name_kebab_case }}/
+RUN mkdir -p src/{{ cookiecutter.__project_name_snake_case }}/ && \
+    touch src/{{ cookiecutter.__project_name_snake_case }}/__init__.py && touch README.md
+RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/uv/ \
+    uv sync --no-default-groups
 
 
 
@@ -66,12 +72,12 @@ RUN --mount=type=cache,target=/var/cache/apt/ \
 USER user
 
 # Install the development Python dependencies in the virtual environment.
-RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/pypoetry/ \
-    poetry install --all-extras --no-interaction
+RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/uv/ \
+    uv sync
 
 # Persist output generated during docker build so that we can restore it in the dev container.
 COPY --chown=user:user .pre-commit-config.yaml /workspaces/{{ cookiecutter.__project_name_kebab_case }}/
-RUN mkdir -p /opt/build/poetry/ && cp poetry.lock /opt/build/poetry/ && \
+RUN mkdir -p /opt/build/uv/ && cp uv.lock /opt/build/uv/ && \
     git init && pre-commit install --install-hooks && \
     mkdir -p /opt/build/git/ && cp .git/hooks/commit-msg .git/hooks/pre-commit /opt/build/git/
 
@@ -96,8 +102,12 @@ FROM base AS app
 
 # Copy the {{ cookiecutter.project_type }} source code to the working directory.
 COPY --chown=user:user ./src ./src
-COPY --chown=user:user ./pyproject.toml .
-COPY --chown=user:user ./poetry.lock .
+COPY --chown=user:user ./pyproject.toml ./uv.lock ./
+
+# Install the {{ cookiecutter.project_type }} itself into the virtual environment. A committed
+# uv.lock is required to build this target so the runtime image is fully reproducible.
+RUN --mount=type=cache,uid=$UID,gid=$GID,target=/home/user/.cache/uv/ \
+    uv sync --no-default-groups --frozen
 {%- if cookiecutter.with_fastapi_api|int %}
 
 # Health check using stdlib only (no curl in slim images).
