@@ -971,3 +971,86 @@ class TestUvMigration:
         )["permissions"]["allow"]
         assert "Bash(uv *)" in allow
         assert "Bash(poetry *)" not in allow
+
+
+# ---------------------------------------------------------------------------
+# Lint / CI configuration guards
+# ---------------------------------------------------------------------------
+
+
+class TestLintCiConfig:
+    """Guard the config that keeps a freshly scaffolded project's CI green.
+
+    These knobs were needed because ruff's preview rules and starlette 1.x
+    otherwise make `poe lint` / `poe test` fail on generated projects.
+    """
+
+    def test_strict_ignores_churning_preview_rules(self, output_dir: Path) -> None:
+        """Strict mode ignores the preview rules that conflict with our style."""
+        import tomllib
+
+        project = bake(output_dir, development_environment="strict")
+        ignore = tomllib.loads(
+            (project / "pyproject.toml").read_bytes().decode()
+        )["tool"]["ruff"]["lint"]["ignore"]
+        # RUF105: forces `# ruff: ignore` over `# noqa`. PLC0415: lazy imports.
+        # RUF201: rewrites rule codes to names in this very config.
+        for rule in ("RUF105", "PLC0415", "RUF201"):
+            assert rule in ignore
+
+    def test_simple_ignores_churning_preview_rules(self, output_dir: Path) -> None:
+        """Simple mode ignores the same preview rules plus RUF100 (unused noqa)."""
+        import tomllib
+
+        project = bake(output_dir, development_environment="simple")
+        ignore = tomllib.loads(
+            (project / "pyproject.toml").read_bytes().decode()
+        )["tool"]["ruff"]["lint"]["ignore"]
+        for rule in ("RUF105", "PLC0415", "RUF201", "RUF100"):
+            assert rule in ignore
+
+    def test_strict_fastapi_filters_starlette_warning(self, output_dir: Path) -> None:
+        """With FastAPI, strict pytest ignores starlette's httpx deprecation.
+
+        starlette 1.x raises StarletteDeprecationWarning (a UserWarning, so not
+        caught by `ignore::DeprecationWarning`); strict `filterwarnings=error`
+        would turn it into a collection error. There is no httpx2 to migrate to.
+        """
+        import tomllib
+
+        project = bake(output_dir, development_environment="strict", with_fastapi_api="1")
+        filters = tomllib.loads(
+            (project / "pyproject.toml").read_bytes().decode()
+        )["tool"]["pytest"]["ini_options"]["filterwarnings"]
+        assert any("StarletteDeprecationWarning" in f for f in filters)
+
+    def test_no_starlette_filter_without_fastapi(self, output_dir: Path) -> None:
+        """Without FastAPI, starlette is not installed, so do not reference it.
+
+        Referencing an uninstalled warning class in filterwarnings would make
+        pytest error out at startup.
+        """
+        import tomllib
+
+        project = bake(output_dir, development_environment="strict", with_fastapi_api="0")
+        filters = tomllib.loads(
+            (project / "pyproject.toml").read_bytes().decode()
+        )["tool"]["pytest"]["ini_options"]["filterwarnings"]
+        assert not any("starlette" in f for f in filters)
+
+    def test_codespell_ignores_french_terms(self, output_dir: Path) -> None:
+        """codespell tolerates the French terms in CLAUDE.md's Agents IA section."""
+        import tomllib
+
+        project = bake(output_dir)
+        words = tomllib.loads(
+            (project / "pyproject.toml").read_bytes().decode()
+        )["tool"]["codespell"]["ignore-words-list"]
+        for term in ("projet", "architecte", "librairies"):
+            assert term in words
+
+    def test_stub_api_has_no_trailing_whitespace(self, output_dir: Path) -> None:
+        """The FastAPI stub is free of trailing whitespace (ruff format / W291)."""
+        project = bake(output_dir, with_fastapi_api="1")
+        for line in (project / "src" / "test_project" / "api.py").read_text().splitlines():
+            assert line == line.rstrip(), f"trailing whitespace: {line!r}"
