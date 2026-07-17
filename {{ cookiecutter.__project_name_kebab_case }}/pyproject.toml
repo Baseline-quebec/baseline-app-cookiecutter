@@ -183,13 +183,15 @@ ignore = [
     "DOC501", # Raised exception missing from docstring. Too verbose for most projects.
     "PLC0415", # `import` should be at top-level. Lazy / conditional imports (e.g. optional Sentry) are intentional.
     "RUF105", # noqa-comments (preview). We suppress with `# noqa`; do not force the `# ruff: ignore` syntax.
+    "RUF201", # rule-codes-in-selectors (preview). This config references rules by code (with comments), on purpose.
 ]
 unfixable = ["ERA001", "F401", "F841", "T201", "T203"]
 {%- else %}
 select = ["A", "ASYNC", "B", "C4", "C90", "D", "DTZ", "E", "F", "FLY", "I", "ISC", "LOG", "N", "NPY", "PERF", "PGH", "PIE", "PL", "PT", "Q", "RET", "RUF", "RSE", "SIM", "TID", "UP", "W", "YTT"]
 # PLC0415: intentional lazy/conditional imports. RUF105 (preview): we suppress with `# noqa`.
-# RUF100: the stub `# noqa` comments target strict mode's fuller ruleset (ARG/FBT/S), unused here.
-ignore = ["D203", "D213", "E501", "PGH003", "PLC0415", "RET504", "RUF100", "RUF105"]
+# RUF100: stub `# noqa` comments target strict's fuller ruleset (ARG/FBT/S), unused here.
+# RUF201 (preview): this config references rules by code (with comments), on purpose.
+ignore = ["D203", "D213", "E501", "PGH003", "PLC0415", "RET504", "RUF100", "RUF105", "RUF201"]
 unfixable = ["F401", "F841"]
 {%- endif %}
 
