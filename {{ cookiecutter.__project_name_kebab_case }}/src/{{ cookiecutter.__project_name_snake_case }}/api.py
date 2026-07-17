@@ -18,14 +18,15 @@ from {{ cookiecutter.__project_name_snake_case }}.settings import settings
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None]:  # noqa: ARG001, RUF029
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:  # noqa: ARG001
     """Handle FastAPI startup and shutdown events."""
     logger.remove()
     logger.add(sys.stderr, level=settings.log_level)
 {%- if cookiecutter.with_sentry|int %}
 
     if settings.sentry_dsn:
-        import sentry_sdk  
+        import sentry_sdk
+
         sentry_sdk.init(
             dsn=settings.sentry_dsn,
             environment=settings.sentry_environment,
