@@ -828,3 +828,146 @@ class TestClaudeCodeConfig:
         assert "contremaitre" in content.lower()
         assert "context7" in content
         assert "playwright" in content
+
+
+# ---------------------------------------------------------------------------
+# uv migration (Poetry -> uv)
+# ---------------------------------------------------------------------------
+
+
+class TestUvMigration:
+    """Verify the project is a well-formed uv project, not a Poetry one."""
+
+    def test_build_backend_is_hatchling(self, output_dir: Path) -> None:
+        """Build backend is hatchling, not poetry-core."""
+        import tomllib
+
+        project = bake(output_dir)
+        parsed = tomllib.loads((project / "pyproject.toml").read_bytes().decode())
+        assert parsed["build-system"]["build-backend"] == "hatchling.build"
+        requires = " ".join(parsed["build-system"]["requires"])
+        assert "hatchling" in requires
+        assert "poetry" not in requires
+
+    def test_wheel_targets_src_package(self, output_dir: Path) -> None:
+        """Hatchling wheel target points at the src package."""
+        import tomllib
+
+        project = bake(output_dir)
+        parsed = tomllib.loads((project / "pyproject.toml").read_bytes().decode())
+        packages = parsed["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"]
+        assert packages == ["src/test_project"]
+
+    def test_no_tool_poetry_table(self, output_dir: Path) -> None:
+        """No [tool.poetry] table remains anywhere in pyproject.toml."""
+        import tomllib
+
+        project = bake(output_dir)
+        parsed = tomllib.loads((project / "pyproject.toml").read_bytes().decode())
+        assert "poetry" not in parsed["tool"]
+        assert "poetry" not in (project / "pyproject.toml").read_text().lower()
+
+    def test_dependency_groups_present(self, output_dir: Path) -> None:
+        """Dev/test dependencies live under [dependency-groups], not Poetry groups."""
+        import tomllib
+
+        project = bake(output_dir)
+        parsed = tomllib.loads((project / "pyproject.toml").read_bytes().decode())
+        groups = parsed["dependency-groups"]
+        assert "test" in groups
+        assert "dev" in groups
+        # test group holds real test deps
+        assert any(dep.startswith("pytest") for dep in groups["test"])
+        # dev group holds tooling
+        assert any(dep.startswith("mkdocs-material") for dep in groups["dev"])
+
+    def test_runtime_deps_use_pep508(self, output_dir: Path) -> None:
+        """Runtime dependencies are a PEP 508 list under [project], not a table."""
+        import tomllib
+
+        project = bake(output_dir, with_fastapi_api="1")
+        parsed = tomllib.loads((project / "pyproject.toml").read_bytes().decode())
+        deps = parsed["project"]["dependencies"]
+        assert isinstance(deps, list)
+        assert any(d.startswith("fastapi") for d in deps)
+        assert any(d.startswith("pydantic-settings") for d in deps)
+
+    def test_tool_uv_default_groups(self, output_dir: Path) -> None:
+        """uv installs the test and dev groups by default."""
+        import tomllib
+
+        project = bake(output_dir)
+        parsed = tomllib.loads((project / "pyproject.toml").read_bytes().decode())
+        assert parsed["tool"]["uv"]["default-groups"] == ["test", "dev"]
+
+    def test_poe_executor_is_simple(self, output_dir: Path) -> None:
+        """poe runs tasks in the active venv (simple), not via `uv run`.
+
+        Without this, poethepoet's auto executor triggers an implicit `uv sync`
+        that reinstalls the editable project into the baked devcontainer venv and
+        fails with a permission error, breaking `poe lint` / `poe test` in CI.
+        """
+        import tomllib
+
+        project = bake(output_dir)
+        parsed = tomllib.loads((project / "pyproject.toml").read_bytes().decode())
+        assert parsed["tool"]["poe"]["executor"]["type"] == "simple"
+
+    def test_commitizen_version_provider_pep621(self, output_dir: Path) -> None:
+        """Commitizen reads the version from PEP 621 metadata, not from Poetry."""
+        import tomllib
+
+        project = bake(output_dir, development_environment="strict")
+        parsed = tomllib.loads((project / "pyproject.toml").read_bytes().decode())
+        assert parsed["tool"]["commitizen"]["version_provider"] == "pep621"
+
+    def test_typer_script_entry_point(self, output_dir: Path) -> None:
+        """The CLI entry point is declared under [project.scripts]."""
+        import tomllib
+
+        project = bake(output_dir, with_typer_cli="1")
+        parsed = tomllib.loads((project / "pyproject.toml").read_bytes().decode())
+        assert parsed["project"]["scripts"]["test-project"] == "test_project.cli:app"
+
+    def test_pre_commit_checks_uv_lock(self, output_dir: Path) -> None:
+        """The pre-commit lock check uses uv, not `poetry check`."""
+        project = bake(output_dir)
+        content = (project / ".pre-commit-config.yaml").read_text()
+        assert "uv lock --check" in content
+        assert "poetry check" not in content
+
+    def test_dependabot_uses_uv_ecosystem(self, output_dir: Path) -> None:
+        """Dependabot tracks Python deps via the uv ecosystem, not pip."""
+        import yaml
+
+        project = bake(output_dir, development_environment="strict")
+        parsed = yaml.safe_load((project / ".github" / "dependabot.yml").read_text())
+        ecosystems = {u["package-ecosystem"] for u in parsed["updates"]}
+        assert "uv" in ecosystems
+        assert "pip" not in ecosystems
+
+    def test_ci_cache_key_uses_uv_lock(self, output_dir: Path) -> None:
+        """The CI Docker cache key hashes uv.lock, not poetry.lock."""
+        project = bake(output_dir)
+        content = (project / ".github" / "workflows" / "test.yml").read_text()
+        assert "uv.lock" in content
+        assert "poetry.lock" not in content
+
+    def test_dockerfile_installs_project_non_editable_free(self, output_dir: Path) -> None:
+        """Dockerfile syncs with uv and never references Poetry."""
+        project = bake(output_dir)
+        content = (project / "Dockerfile").read_text()
+        assert "uv sync" in content
+        assert "ghcr.io/astral-sh/uv" in content
+        assert "poetry" not in content.lower()
+
+    def test_settings_allow_uv_not_poetry(self, output_dir: Path) -> None:
+        """Claude Code settings allow uv commands and drop the Poetry allowance."""
+        import json
+
+        project = bake(output_dir)
+        allow = json.loads(
+            (project / ".claude" / "settings.json").read_text()
+        )["permissions"]["allow"]
+        assert "Bash(uv *)" in allow
+        assert "Bash(poetry *)" not in allow
