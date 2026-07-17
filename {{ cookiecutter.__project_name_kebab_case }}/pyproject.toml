@@ -217,6 +217,12 @@ check-filenames = true
 ignore-words-list = "jupyter"
 skip = "./*_cache/,./.venv,./reports,./uv.lock"
 
+[tool.poe]  # https://poethepoet.natn.io/guides/uv_guide.html
+# Run tasks in the already-activated virtualenv instead of via `uv run`, which would
+# trigger an implicit `uv sync` that reinstalls the editable project into a read-only
+# baked venv (e.g. in the devcontainer / CI), failing with a permission error.
+executor.type = "simple"
+
 [tool.poe.tasks]  # https://github.com/nat-n/poethepoet
 {%- if cookiecutter.with_fastapi_api|int %}
 
