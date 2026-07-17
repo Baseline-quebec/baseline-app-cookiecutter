@@ -22,20 +22,20 @@ This project follows the [Baseline development conventions](https://github.com/B
 src/{{ cookiecutter.__project_name_snake_case }}/   # source code (src layout)
 tests/                                              # test suite
 docs/                                               # MkDocs documentation + ADRs
-pyproject.toml                                      # Poetry config, tool settings
+pyproject.toml                                      # project config (uv), tool settings
 ```
 
 ## Commands
 
-Always use `poetry run` — never `poetry shell`.
+Always use `uv run` to execute project commands so they run in the managed `.venv/`.
 
 ```bash
-poetry install                # install dependencies
-poetry run poe lint           # ruff + mypy + pre-commit
-poetry run poe test           # pytest with coverage
-poetry run poe docs --serve   # serve MkDocs locally
+uv sync                   # install dependencies
+uv run poe lint           # ruff + mypy + pre-commit
+uv run poe test           # pytest with coverage
+uv run poe docs --serve   # serve MkDocs locally
 {%- if cookiecutter.with_fastapi_api|int %}
-poetry run poe api --dev      # start FastAPI dev server
+uv run poe api --dev      # start FastAPI dev server
 {%- endif %}
 ```
 
@@ -48,7 +48,7 @@ poetry run poe api --dev      # start FastAPI dev server
 
 ## Tech stack
 
-- **Package manager**: [Poetry](https://python-poetry.org/)
+- **Package manager**: [uv](https://docs.astral.sh/uv/)
 - **Task runner**: [Poe the Poet](https://github.com/nat-n/poethepoet)
 - **Linting**: [Ruff](https://docs.astral.sh/ruff/) (linting + formatting)
 - **Type checking**: [Mypy](https://mypy.readthedocs.io/) (strict mode)

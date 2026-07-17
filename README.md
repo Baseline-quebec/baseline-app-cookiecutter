@@ -8,7 +8,7 @@ A modern [Cookiecutter](https://github.com/cookiecutter/cookiecutter) template f
 
 - Quick and reproducible development environments with VS Code's [Dev Containers](https://code.visualstudio.com/docs/devcontainers/containers), PyCharm's [Docker Compose interpreter](https://www.jetbrains.com/help/pycharm/using-docker-compose-as-a-remote-interpreter.html#docker-compose-remote), and [GitHub Codespaces](https://github.com/features/codespaces)
 - Cross-platform support for Linux, macOS (Apple silicon and Intel), and Windows
-- Packaging and dependency management with [Poetry](https://github.com/python-poetry/poetry)
+- Packaging and dependency management with [uv](https://github.com/astral-sh/uv)
 - Task running with [Poe the Poet](https://github.com/nat-n/poethepoet)
 - Code formatting and linting with [Ruff](https://github.com/charliermarsh/ruff), [Mypy](https://github.com/python/mypy), and [Pre-commit](https://pre-commit.com/)
 - Spell checking with [codespell](https://github.com/codespell-project/codespell)
@@ -99,7 +99,7 @@ baseline-app-cookiecutter/
 │   ├── .github/workflows/             # CI + LLM scan for generated projects
 │   ├── src/{{ ... }}/                 # Source code stubs
 │   ├── tests/                         # Test stubs
-│   ├── pyproject.toml                 # Poetry config
+│   ├── pyproject.toml                 # project config (uv)
 │   └── ...
 ├── .github/
 │   ├── workflows/ci.yml               # Unit tests
@@ -112,9 +112,9 @@ baseline-app-cookiecutter/
 
 ## Upstream sync
 
-This template is a fork of [superlinear-ai/substrate](https://github.com/superlinear-ai/substrate). The upstream has since migrated to [uv](https://github.com/astral-sh/uv) (replacing Poetry), [Copier](https://copier.readthedocs.io/) (replacing Cookiecutter), and [ty](https://github.com/astral-sh/ty) (replacing Mypy). These are major structural changes that would require reworking the entire Baseline toolchain.
+This template is a fork of [superlinear-ai/substrate](https://github.com/superlinear-ai/substrate). The upstream has since migrated to [uv](https://github.com/astral-sh/uv) (replacing Poetry), [Copier](https://copier.readthedocs.io/) (replacing Cookiecutter), and [ty](https://github.com/astral-sh/ty) (replacing Mypy).
 
-We intentionally stay on **Poetry + Cookiecutter + Mypy** to maintain compatibility with existing Baseline projects. Instead of a full upstream merge, we cherry-pick individual improvements that are independent of the build system migration.
+We have adopted **uv** for packaging and dependency management, while intentionally staying on **Cookiecutter + Mypy** to maintain compatibility with existing Baseline projects. Instead of a full upstream merge, we cherry-pick individual improvements that are independent of the remaining migrations.
 
 ## Template parameters
 

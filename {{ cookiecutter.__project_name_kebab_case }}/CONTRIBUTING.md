@@ -19,8 +19,8 @@ poe api
 To install and use this project:
 
 ```sh
-poetry install
-poe test
+uv sync
+uv run poe test
 ```
 {%- endif %}
 
@@ -91,10 +91,10 @@ You can develop "remotely" inside a container using one of the following develop
 <summary>Local development</summary>
 
 To develop locally, you'll have to install manually some tools.
-First, initialize a virtual environment for the project with
-```poetry shell```
-and then install the dependencies and the project with
-```poetry install```
+Install [uv](https://docs.astral.sh/uv/getting-started/installation/), then create the
+virtual environment and install the dependencies and the project in one step with
+```uv sync```
+uv automatically manages the `.venv/` for the project; prefix commands with `uv run` (e.g. `uv run poe test`).
 
 </details>
 
@@ -107,7 +107,7 @@ After setting up the development environment, you'll have to create an .env file
 
 ### Development tools
 
-The following tools will be automatically installed by poetry to support development:
+The following tools will be automatically installed by uv to support development:
 
 - _commitizen_: This project follows the [Conventional Commits](https://www.conventionalcommits.org/) standard to automate [Semantic Versioning](https://semver.org/) and [Keep A Changelog](https://keepachangelog.com/) with [Commitizen](https://github.com/commitizen-tools/commitizen).
 
@@ -159,9 +159,9 @@ We use the following integration tools:
 
 - Run `poe` from within the development environment to print a list of [Poe the Poet](https://github.com/nat-n/poethepoet) tasks available to run on this project.
 
-- Run `poetry add {package}` from within the development environment to install a run time dependency and add it to `pyproject.toml` and `poetry.lock`. Add `--group test` or `--group dev` to install a CI or development dependency, respectively.
+- Run `uv add {package}` from within the development environment to install a run time dependency and add it to `pyproject.toml` and `uv.lock`. Add `--group test` or `--group dev` to install a CI or development dependency, respectively.
 
-- Run `poetry update` from within the development environment to upgrade all dependencies to the latest versions allowed by `pyproject.toml`.
+- Run `uv lock --upgrade` from within the development environment to upgrade all dependencies to the latest versions allowed by `pyproject.toml`.
 
 - Run `cz bump` to bump the app's version, update the `CHANGELOG.md`, and create a git tag.
 

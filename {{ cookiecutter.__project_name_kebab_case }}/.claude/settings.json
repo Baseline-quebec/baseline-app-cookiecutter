@@ -45,7 +45,6 @@
       "Bash(echo *)",
       "Bash(* --version)",
       "Bash(* --help)",
-      "Bash(poetry *)",
       "Bash(npm *)",
       "Bash(npx *)",
       "Bash(pip *)",

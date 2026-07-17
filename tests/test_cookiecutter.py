@@ -283,11 +283,13 @@ class TestDockerfile:
         assert "AS dev" in from_lines[1]
         assert "AS app" in from_lines[2]
 
-    def test_poetry_version(self, output_dir: Path) -> None:
-        """Dockerfile uses Poetry 2.3.x."""
+    def test_uv_install(self, output_dir: Path) -> None:
+        """Dockerfile installs uv and uses `uv sync`."""
         project = bake(output_dir)
         content = (project / "Dockerfile").read_text()
-        assert "POETRY_VERSION=2.3." in content
+        assert "ghcr.io/astral-sh/uv" in content
+        assert "uv sync" in content
+        assert "poetry" not in content.lower()
 
     def test_healthcheck_with_fastapi(self, output_dir: Path) -> None:
         """Dockerfile has HEALTHCHECK when FastAPI is enabled."""
@@ -502,7 +504,11 @@ class TestCombinations:
         content = (project / "pyproject.toml").read_bytes()
         parsed = tomllib.loads(content.decode())
         assert "tool" in parsed
-        assert "poetry" in parsed["tool"]
+        assert "project" in parsed
+        assert parsed["project"]["name"] == "test-project"
+        assert parsed["build-system"]["build-backend"] == "hatchling.build"
+        assert "uv" in parsed["tool"]
+        assert "poetry" not in parsed["tool"]
 
 
 # ---------------------------------------------------------------------------
@@ -524,7 +530,7 @@ class TestCodespell:
         """codespell dependency is in test dependencies."""
         project = bake(output_dir)
         content = (project / "pyproject.toml").read_text()
-        assert 'codespell = ">=2.4.0"' in content
+        assert '"codespell>=2.4.0"' in content
 
     def test_codespell_config_in_pyproject(self, output_dir: Path) -> None:
         """codespell configuration section exists in pyproject.toml."""
@@ -794,7 +800,7 @@ class TestClaudeCodeConfig:
         content = json.loads((project / ".claude" / "settings.json").read_text())
         allow = content["permissions"]["allow"]
         deny = content["permissions"]["deny"]
-        assert "Bash(poetry *)" in allow
+        assert "Bash(uv *)" in allow
         assert "Bash(git *)" in allow
         assert "Bash(gh pr *)" in allow
         assert "Edit" in allow

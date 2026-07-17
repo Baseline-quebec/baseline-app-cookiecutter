@@ -35,7 +35,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/.buildx-cache
-          key: {% raw %}${{{% endraw %} runner.os }}-docker-{% raw %}${{{% endraw %} hashFiles('**/poetry.lock') }}
+          key: {% raw %}${{{% endraw %} runner.os }}-docker-{% raw %}${{{% endraw %} hashFiles('**/uv.lock') }}
           restore-keys: |
             {% raw %}${{{% endraw %} runner.os }}-docker-
 
