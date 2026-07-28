@@ -15,6 +15,16 @@ class Settings(BaseSettings):
     api_host: str = "0.0.0.0"  # noqa: S104
     api_port: int = 8000
 {%- endif %}
+{%- if cookiecutter.with_chatbot|int %}
+
+    # --- Chatbot ---
+    anthropic_api_key: str = ""
+    chat_model: str = "{{ cookiecutter.__chat_model }}"
+    chat_max_tokens: int = 8192
+    # Keep this static: it is the cached prefix of every request. Per-request
+    # context belongs in a tool, not here.
+    chat_system_prompt: str = "You are a helpful assistant."
+{%- endif %}
 {%- if cookiecutter.with_sentry|int %}
     sentry_dsn: str = ""
     sentry_environment: str = "development"

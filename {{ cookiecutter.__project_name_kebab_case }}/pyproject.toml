@@ -19,7 +19,13 @@ dependencies = [
 {%- if cookiecutter.project_type == "app" %}
   "poethepoet>=0.32.0",
 {%- endif %}
+{%- if cookiecutter.with_chatbot|int %}
+  "pydantic-ai-slim[anthropic]>=2.19.0",
+{%- endif %}
   "pydantic-settings>=2.7.0",
+{%- if cookiecutter.with_chatbot|int %}
+  "sse-starlette>=3.0.0",
+{%- endif %}
 {%- if cookiecutter.with_sentry|int %}
   "sentry-sdk[fastapi]>=2.19.0",
 {%- endif %}
@@ -220,7 +226,13 @@ max-public-methods = 30
 [tool.codespell]  # https://github.com/codespell-project/codespell
 builtin = "en-GB_to_en-US,clear,code,rare"
 check-filenames = true
+{% if cookiecutter.with_chatbot|int -%}
+# French terms in CLAUDE.md (bilingual docs); "cancelled" is asyncio's own
+# spelling in `Task.cancelled()`, which codespell would otherwise flag.
+ignore-words-list = "architecte,jupyter,librairies,projet,cancelled"
+{% else -%}
 ignore-words-list = "architecte,jupyter,librairies,projet"  # French terms in CLAUDE.md (bilingual docs)
+{% endif -%}
 skip = "./*_cache/,./.venv,./reports,./uv.lock"
 
 [tool.poe]  # https://poethepoet.natn.io/guides/uv_guide.html

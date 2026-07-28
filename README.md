@@ -132,5 +132,6 @@ We have adopted **uv** for packaging and dependency management, while intentiona
 | `with_conventional_commits` <br> ["0", "1"] | Adds Commitizen for conventional commits. Auto-enabled in strict mode. |
 | `with_fastapi_api` <br> ["0", "1"] | Adds FastAPI with health endpoint, CRUD stubs, Pydantic models, and `poe api`. |
 | `with_typer_cli` <br> ["0", "1"] | Adds Typer CLI with `info`, `config`, and `health` commands. |
+| `with_chatbot` <br> ["0", "1"] | Adds a [Pydantic AI](https://ai.pydantic.dev/) agent behind a streaming (SSE) chat route, with conversation history and hermetic tests. Requires `with_fastapi_api=1`. |
 | `with_pytest_bdd` <br> ["0", "1"] | Adds pytest-bdd with Gherkin feature files. Default: plain pytest. |
 | `with_sentry` <br> ["0", "1"] | Adds Sentry SDK with FastAPI integration. Requires `with_fastapi_api=1`. |

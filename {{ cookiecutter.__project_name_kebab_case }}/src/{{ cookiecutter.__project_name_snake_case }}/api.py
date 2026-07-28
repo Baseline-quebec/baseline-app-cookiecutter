@@ -12,6 +12,9 @@ from loguru import logger
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
+{% if cookiecutter.with_chatbot|int -%}
+from {{ cookiecutter.__project_name_snake_case }}.chat.router import chat_router, shutdown_chat
+{% endif -%}
 from {{ cookiecutter.__project_name_snake_case }}.models import HealthResponse, Item, ItemCreate
 from {{ cookiecutter.__project_name_snake_case }}.services import ItemService
 from {{ cookiecutter.__project_name_snake_case }}.settings import settings
@@ -35,10 +38,25 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:  # noqa: ARG001
         logger.info("Sentry initialized for environment '{}'", settings.sentry_environment)
 {%- endif %}
 
+{%- if cookiecutter.with_chatbot|int %}
+
+    try:
+        yield
+    finally:
+        # An agent run outlives the response that started it, so let any
+        # in-flight turn finish and persist before the app goes away.
+        await shutdown_chat()
+{%- else %}
+
     yield
+{%- endif %}
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
+{%- if cookiecutter.with_chatbot|int %}
+
+app.include_router(chat_router)
+{%- endif %}
 
 
 # --- Dependency injection --------------------------------------------------------

@@ -50,6 +50,34 @@ poe api --dev
 Access the API at [localhost:8000](http://localhost:8000) and the docs at [localhost:8000/docs](http://localhost:8000/docs).
 {%- endif %}
 {% endif %}
+{%- if cookiecutter.with_chatbot|int %}
+
+### Chatbot
+
+Set `ANTHROPIC_API_KEY` in `.env`, start the API, then send a message. The route
+is a POST that returns a Server-Sent Event stream, so read it incrementally
+rather than with the browser `EventSource` API:
+
+```bash
+curl -N -X POST localhost:8000/chat/my-conversation \
+  -H 'Content-Type: application/json' \
+  -d '{"message": "What time is it?"}'
+```
+
+Fetch the transcript of a conversation with `GET /chat/my-conversation`.
+
+The agent lives in `src/{{ cookiecutter.__project_name_snake_case }}/chat/`. To adapt it:
+
+- `agent.py` — the model, the system prompt, and the tools the agent can call.
+- `history.py` — conversation persistence. The default store is in-memory and
+  therefore lost on restart; implement `ConversationStore` against a database
+  before deploying.
+- `service.py` — translates an agent run into `ChatEvent`s.
+- `router.py` — the HTTP surface.
+
+Tests use Pydantic AI's `TestModel` and `FunctionModel`, so `poe test` needs no
+API key and makes no network calls.
+{%- endif %}
 {%- if cookiecutter.with_typer_cli|int %}
 
 ### CLI
@@ -82,6 +110,9 @@ poe docs --serve  # serve documentation locally
 {%- endif %}
 {%- if cookiecutter.with_typer_cli|int %}
 │   ├── cli.py                                         # Typer CLI
+{%- endif %}
+{%- if cookiecutter.with_chatbot|int %}
+│   ├── chat/                                          # Pydantic AI chatbot
 {%- endif %}
 │   ├── models.py                                      # Pydantic models
 │   └── services.py                                    # business logic

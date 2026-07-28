@@ -9,6 +9,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from cookiecutter.exceptions import FailedHookException
 from cookiecutter.main import cookiecutter
 
 
@@ -211,6 +212,92 @@ class TestTyperToggle:
         project = bake(output_dir, with_typer_cli="0")
         assert not (project / "src" / "test_project" / "cli.py").exists()
         assert not (project / "tests" / "test_cli.py").exists()
+
+
+# ---------------------------------------------------------------------------
+# Chatbot tests
+# ---------------------------------------------------------------------------
+
+
+class TestChatbot:
+    """Verify with_chatbot parameter behavior."""
+
+    def test_chatbot_on_files(self, output_dir: Path) -> None:
+        """Chat package and tests are present when enabled."""
+        project = bake(output_dir, with_chatbot="1", with_fastapi_api="1")
+        chat = project / "src" / "test_project" / "chat"
+        for module in (
+            "__init__",
+            "agent",
+            "event_sender",
+            "events",
+            "history",
+            "router",
+            "service",
+        ):
+            assert (chat / f"{module}.py").is_file()
+        assert (project / "tests" / "test_chat.py").is_file()
+
+    def test_chatbot_off_files(self, output_dir: Path) -> None:
+        """Chat package and tests are absent when disabled."""
+        project = bake(output_dir, with_chatbot="0")
+        assert not (project / "src" / "test_project" / "chat").exists()
+        assert not (project / "tests" / "test_chat.py").exists()
+
+    def test_chatbot_on_deps(self, output_dir: Path) -> None:
+        """Pydantic AI and sse-starlette are declared when enabled."""
+        content = (bake(output_dir, with_chatbot="1") / "pyproject.toml").read_text()
+        assert "pydantic-ai-slim[anthropic]" in content
+        assert "sse-starlette" in content
+
+    def test_chatbot_off_deps(self, output_dir: Path) -> None:
+        """No chat dependencies leak in when disabled."""
+        content = (bake(output_dir, with_chatbot="0") / "pyproject.toml").read_text()
+        assert "pydantic-ai" not in content
+        assert "sse-starlette" not in content
+
+    def test_chatbot_on_router_mounted(self, output_dir: Path) -> None:
+        """The API imports and mounts the chat router when enabled."""
+        project = bake(output_dir, with_chatbot="1", with_fastapi_api="1")
+        api = (project / "src" / "test_project" / "api.py").read_text()
+        assert "from test_project.chat.router import chat_router" in api
+        assert "app.include_router(chat_router)" in api
+
+    def test_chatbot_off_router_not_mounted(self, output_dir: Path) -> None:
+        """The API has no chat references when disabled."""
+        project = bake(output_dir, with_chatbot="0", with_fastapi_api="1")
+        assert "chat" not in (project / "src" / "test_project" / "api.py").read_text()
+
+    def test_chatbot_on_settings_and_env(self, output_dir: Path) -> None:
+        """Chat settings and env placeholders are rendered when enabled."""
+        project = bake(output_dir, with_chatbot="1")
+        settings = (project / "src" / "test_project" / "settings.py").read_text()
+        assert "chat_model" in settings
+        assert "anthropic_api_key" in settings
+        env = (project / ".env.example").read_text()
+        assert "ANTHROPIC_API_KEY=" in env
+        assert "CHAT_MODEL=" in env
+
+    def test_chatbot_off_settings_clean(self, output_dir: Path) -> None:
+        """No chat settings or env placeholders when disabled."""
+        project = bake(output_dir, with_chatbot="0")
+        assert "chat_model" not in (project / "src" / "test_project" / "settings.py").read_text()
+        assert "ANTHROPIC_API_KEY" not in (project / ".env.example").read_text()
+
+    def test_chatbot_requires_fastapi(self, output_dir: Path) -> None:
+        """Enabling the chatbot without the API aborts generation."""
+        with pytest.raises(FailedHookException):
+            bake(output_dir, with_chatbot="1", with_fastapi_api="0")
+
+    def test_chatbot_needs_no_lint_exemption(self, output_dir: Path) -> None:
+        """The chatbot adds no per-file lint ignores.
+
+        The push-based service has no `yield` inside a cancel scope, so ASYNC119
+        never fires. If this starts failing, the streaming design has regressed
+        back to yielding across `Agent.iter`.
+        """
+        content = (bake(output_dir, with_chatbot="1") / "pyproject.toml").read_text()
+        assert "ASYNC119" not in content
 
 
 # ---------------------------------------------------------------------------
