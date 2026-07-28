@@ -31,9 +31,11 @@ if not with_fastapi_api:
     if with_pytest_bdd:
         os.remove("tests/features/api.feature")
 
-# Remove the chatbot package if not selected.
+# Remove the chatbot package if not selected. The dishka container only wires up
+# chat collaborators, so it goes with it.
 if not with_chatbot:
     shutil.rmtree(f"src/{project_name}/chat", ignore_errors=True)
+    os.remove(f"src/{project_name}/container.py")
     os.remove("tests/test_chat.py")
 
 # Remove Typer if not selected.

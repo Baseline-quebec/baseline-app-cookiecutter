@@ -75,8 +75,13 @@ The agent lives in `src/{{ cookiecutter.__project_name_snake_case }}/chat/`. To 
 - `service.py` — translates an agent run into `ChatEvent`s.
 - `router.py` — the HTTP surface.
 
-Tests use Pydantic AI's `TestModel` and `FunctionModel`, so `poe test` needs no
-API key and makes no network calls.
+Collaborators are wired in `src/{{ cookiecutter.__project_name_snake_case }}/container.py` with
+[dishka](https://dishka.readthedocs.io/): routes declare `FromDishka[...]` under
+`@inject` and construct nothing themselves. Add a service by adding a `@provide`
+method there, then asking for it in a route.
+
+Tests use Pydantic AI's `TestModel` and `FunctionModel` behind a stub container,
+so `poe test` needs no API key and makes no network calls.
 {%- endif %}
 {%- if cookiecutter.with_typer_cli|int %}
 
@@ -113,6 +118,7 @@ poe docs --serve  # serve documentation locally
 {%- endif %}
 {%- if cookiecutter.with_chatbot|int %}
 │   ├── chat/                                          # Pydantic AI chatbot
+│   ├── container.py                                   # dishka DI container
 {%- endif %}
 │   ├── models.py                                      # Pydantic models
 │   └── services.py                                    # business logic

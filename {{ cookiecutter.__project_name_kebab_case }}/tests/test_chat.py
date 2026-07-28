@@ -8,6 +8,7 @@ from collections.abc import AsyncIterator, Iterator
 from http import HTTPStatus
 
 import pytest
+from dishka import Provider, Scope, make_async_container
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 from pydantic_ai.messages import ModelMessage, ModelResponse
@@ -18,12 +19,13 @@ from {{ cookiecutter.__project_name_snake_case }}.api import app
 from {{ cookiecutter.__project_name_snake_case }}.chat.agent import build_agent
 from {{ cookiecutter.__project_name_snake_case }}.chat.event_sender import EventSender, wait_for_pending_events
 from {{ cookiecutter.__project_name_snake_case }}.chat.events import ChatEvent
-from {{ cookiecutter.__project_name_snake_case }}.chat.history import InMemoryConversationStore
-from {{ cookiecutter.__project_name_snake_case }}.chat.router import (
-    get_chat_service,
-    get_conversation_store,
+from {{ cookiecutter.__project_name_snake_case }}.chat.history import (
+    ConversationStore,
+    InMemoryConversationStore,
 )
 from {{ cookiecutter.__project_name_snake_case }}.chat.service import ChatService
+from {{ cookiecutter.__project_name_snake_case }}.container import make_container
+from {{ cookiecutter.__project_name_snake_case }}.settings import settings
 
 
 REPLY = "Hello there"
@@ -40,20 +42,34 @@ def store() -> InMemoryConversationStore:
 @pytest.fixture
 def service(store: InMemoryConversationStore) -> ChatService:
     """Provide a ChatService backed by a deterministic model."""
-    return ChatService(build_agent(TestModel(custom_output_text=REPLY)), store)
+    return ChatService(build_agent(settings, TestModel(custom_output_text=REPLY)), store)
 
 
 @pytest.fixture
 def chat_app(store: InMemoryConversationStore, service: ChatService) -> Iterator[FastAPI]:
-    """Provide the API with the chat dependencies overridden.
+    """Provide the API with the container's chat collaborators replaced.
+
+    Bypasses `CoreProvider` entirely: the test container only knows how to hand
+    back the fixtures above, so no Anthropic client is ever constructed and the
+    suite needs no API key.
 
     Yields:
-        The FastAPI app, with overrides cleared afterwards.
+        The FastAPI app, with the real container restored afterwards.
     """
-    app.dependency_overrides[get_chat_service] = lambda: service
-    app.dependency_overrides[get_conversation_store] = lambda: store
-    yield app
-    app.dependency_overrides.clear()
+    provider = Provider()
+    provider.from_context(provides=ChatService, scope=Scope.APP)
+    provider.from_context(provides=ConversationStore, scope=Scope.APP)
+    test_container = make_async_container(
+        provider,
+        context={ChatService: service, ConversationStore: store},
+    )
+
+    original_container = app.state.dishka_container
+    app.state.dishka_container = test_container
+    try:
+        yield app
+    finally:
+        app.state.dishka_container = original_container
 
 
 def _identity(event: ChatEvent) -> ChatEvent:
@@ -132,7 +148,7 @@ async def test_model_failure_yields_error_event(store: InMemoryConversationStore
     def explode(_messages: list[ModelMessage], _info: AgentInfo) -> ModelResponse:
         raise RuntimeError(message)
 
-    failing = ChatService(build_agent(FunctionModel(explode)), store)
+    failing = ChatService(build_agent(settings, FunctionModel(explode)), store)
     events = await drain(failing, "c1", "hi")
 
     assert events[-1].type == "error"
@@ -210,3 +226,25 @@ async def test_empty_message_is_rejected(chat_app: FastAPI) -> None:
         response = await client.post("/chat/c1", json={"message": ""})
 
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+
+
+async def test_container_resolves_the_whole_chat_graph(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The real container can build a ChatService.
+
+    The endpoint tests above run against a stubbed container, so they would still
+    pass if `container.py` were mis-wired. This resolves the genuine provider
+    graph — settings, model, agent, store, service — which is where a missing or
+    mistyped `@provide` would surface.
+
+    The key is a placeholder: the Anthropic provider refuses to be constructed
+    without one, but nothing here sends a request, so it is never used.
+    """
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "sk-ant-not-a-real-key")
+
+    container = make_container()
+    try:
+        assert isinstance(await container.get(ChatService), ChatService)
+    finally:
+        await container.close()

@@ -6,6 +6,9 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Annotated
 
+{% if cookiecutter.with_chatbot|int -%}
+from dishka.integrations.fastapi import setup_dishka
+{% endif -%}
 from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from loguru import logger
@@ -14,6 +17,7 @@ from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoin
 
 {% if cookiecutter.with_chatbot|int -%}
 from {{ cookiecutter.__project_name_snake_case }}.chat.router import chat_router, shutdown_chat
+from {{ cookiecutter.__project_name_snake_case }}.container import make_container
 {% endif -%}
 from {{ cookiecutter.__project_name_snake_case }}.models import HealthResponse, Item, ItemCreate
 from {{ cookiecutter.__project_name_snake_case }}.services import ItemService
@@ -21,7 +25,7 @@ from {{ cookiecutter.__project_name_snake_case }}.settings import settings
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None]:  # noqa: ARG001
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:{% if not cookiecutter.with_chatbot|int %}  # noqa: ARG001{% endif %}
     """Handle FastAPI startup and shutdown events."""
     logger.remove()
     logger.add(sys.stderr, level=settings.log_level)
@@ -46,6 +50,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:  # noqa: ARG001
         # An agent run outlives the response that started it, so let any
         # in-flight turn finish and persist before the app goes away.
         await shutdown_chat()
+        await app.state.dishka_container.close()
 {%- else %}
 
     yield
@@ -54,6 +59,11 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:  # noqa: ARG001
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 {%- if cookiecutter.with_chatbot|int %}
+
+# Wires the dishka container into the app: routes decorated with `@inject` can
+# then declare `FromDishka[...]` parameters. `lifespan` closes it on shutdown.
+container = make_container()
+setup_dishka(container, app)
 
 app.include_router(chat_router)
 {%- endif %}

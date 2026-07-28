@@ -236,25 +236,29 @@ class TestChatbot:
             "service",
         ):
             assert (chat / f"{module}.py").is_file()
+        assert (project / "src" / "test_project" / "container.py").is_file()
         assert (project / "tests" / "test_chat.py").is_file()
 
     def test_chatbot_off_files(self, output_dir: Path) -> None:
-        """Chat package and tests are absent when disabled."""
+        """Chat package, container, and tests are absent when disabled."""
         project = bake(output_dir, with_chatbot="0")
         assert not (project / "src" / "test_project" / "chat").exists()
+        assert not (project / "src" / "test_project" / "container.py").exists()
         assert not (project / "tests" / "test_chat.py").exists()
 
     def test_chatbot_on_deps(self, output_dir: Path) -> None:
-        """Pydantic AI and sse-starlette are declared when enabled."""
+        """Pydantic AI, sse-starlette, and dishka are declared when enabled."""
         content = (bake(output_dir, with_chatbot="1") / "pyproject.toml").read_text()
         assert "pydantic-ai-slim[anthropic]" in content
         assert "sse-starlette" in content
+        assert "dishka" in content
 
     def test_chatbot_off_deps(self, output_dir: Path) -> None:
         """No chat dependencies leak in when disabled."""
         content = (bake(output_dir, with_chatbot="0") / "pyproject.toml").read_text()
         assert "pydantic-ai" not in content
         assert "sse-starlette" not in content
+        assert "dishka" not in content
 
     def test_chatbot_on_router_mounted(self, output_dir: Path) -> None:
         """The API imports and mounts the chat router when enabled."""
@@ -262,6 +266,36 @@ class TestChatbot:
         api = (project / "src" / "test_project" / "api.py").read_text()
         assert "from test_project.chat.router import chat_router" in api
         assert "app.include_router(chat_router)" in api
+
+    def test_chatbot_on_dishka_wired(self, output_dir: Path) -> None:
+        """The API sets up the dishka container and closes it on shutdown."""
+        api = (
+            bake(output_dir, with_chatbot="1", with_fastapi_api="1")
+            / "src"
+            / "test_project"
+            / "api.py"
+        ).read_text()
+        assert "from test_project.container import make_container" in api
+        assert "setup_dishka(container, app)" in api
+        assert "await app.state.dishka_container.close()" in api
+
+    def test_chatbot_routes_inject_from_dishka(self, output_dir: Path) -> None:
+        """Chat routes take their collaborators from the container.
+
+        Guards the DI convention shared with the other Baseline chatbots: routes
+        declare `FromDishka[...]` under `@inject` and hold no module-level state.
+        """
+        router = (
+            bake(output_dir, with_chatbot="1", with_fastapi_api="1")
+            / "src"
+            / "test_project"
+            / "chat"
+            / "router.py"
+        ).read_text()
+        assert "FromDishka[ChatService]" in router
+        assert "FromDishka[ConversationStore]" in router
+        assert "Depends(" not in router
+        assert "global " not in router
 
     def test_chatbot_off_router_not_mounted(self, output_dir: Path) -> None:
         """The API has no chat references when disabled."""

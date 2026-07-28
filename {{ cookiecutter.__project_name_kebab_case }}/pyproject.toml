@@ -16,6 +16,9 @@ dependencies = [
   "loguru>=0.7.3",
   "gunicorn>=23.0.0",
 {%- endif %}
+{%- if cookiecutter.with_chatbot|int %}
+  "dishka>=1.10.1",
+{%- endif %}
 {%- if cookiecutter.project_type == "app" %}
   "poethepoet>=0.32.0",
 {%- endif %}

@@ -1,19 +1,18 @@
-"""Chat HTTP routes."""
+"""Chat HTTP routes.
 
-from typing import Annotated
+Collaborators are injected by dishka (`FromDishka[...]` under `@inject`) and
+built in `container.py`. Nothing here constructs a service or holds module state.
+"""
 
-from fastapi import APIRouter, Depends
+from dishka.integrations.fastapi import FromDishka, inject
+from fastapi import APIRouter
 from pydantic import BaseModel, Field
 from pydantic_ai.messages import ModelMessage, TextPart, UserPromptPart
 from sse_starlette import EventSourceResponse, ServerSentEvent
 
-from {{ cookiecutter.__project_name_snake_case }}.chat.agent import build_agent
 from {{ cookiecutter.__project_name_snake_case }}.chat.event_sender import EventSender, wait_for_pending_events
 from {{ cookiecutter.__project_name_snake_case }}.chat.events import ChatEvent
-from {{ cookiecutter.__project_name_snake_case }}.chat.history import (
-    ConversationStore,
-    InMemoryConversationStore,
-)
+from {{ cookiecutter.__project_name_snake_case }}.chat.history import ConversationStore
 from {{ cookiecutter.__project_name_snake_case }}.chat.service import ChatService
 
 
@@ -38,29 +37,6 @@ class ChatHistoryResponse(BaseModel):
     messages: list[ChatMessage]
 
 
-# --- Dependency injection --------------------------------------------------------
-
-_store = InMemoryConversationStore()
-_service: ChatService | None = None
-
-
-def get_conversation_store() -> ConversationStore:
-    """Provide the shared conversation store."""
-    return _store
-
-
-def get_chat_service() -> ChatService:
-    """Provide the shared ChatService, building the agent on first use.
-
-    Construction is deferred so that importing this module does not require an
-    API key. Tests override this dependency with a service built on a test model.
-    """
-    global _service  # noqa: PLW0603
-    if _service is None:
-        _service = ChatService(build_agent(), get_conversation_store())
-    return _service
-
-
 async def shutdown_chat() -> None:
     """Let in-flight agent runs finish before the app goes away.
 
@@ -69,9 +45,6 @@ async def shutdown_chat() -> None:
     """
     await wait_for_pending_events()
 
-
-ChatServiceDep = Annotated[ChatService, Depends(get_chat_service)]
-ConversationStoreDep = Annotated[ConversationStore, Depends(get_conversation_store)]
 
 chat_router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -92,8 +65,9 @@ def adapt_to_server_sent_event(event: ChatEvent) -> ServerSentEvent:
 
 
 @chat_router.post("/{conversation_id}")
+@inject
 async def send_message(
-    conversation_id: str, data: ChatRequest, service: ChatServiceDep
+    conversation_id: str, data: ChatRequest, service: FromDishka[ChatService]
 ) -> EventSourceResponse:
     """Send a message and stream the reply.
 
@@ -110,7 +84,10 @@ async def send_message(
 
 
 @chat_router.get("/{conversation_id}")
-async def get_history(conversation_id: str, store: ConversationStoreDep) -> ChatHistoryResponse:
+@inject
+async def get_history(
+    conversation_id: str, store: FromDishka[ConversationStore]
+) -> ChatHistoryResponse:
     """Return the visible transcript of a conversation."""
     messages = await store.load(conversation_id)
     return ChatHistoryResponse(

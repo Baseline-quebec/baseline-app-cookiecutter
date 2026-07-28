@@ -63,6 +63,7 @@ uv run poe api --dev      # start FastAPI dev server
 {%- endif %}
 {%- if cookiecutter.with_chatbot|int %}
 - **Chatbot**: [Pydantic AI](https://ai.pydantic.dev/) agent + [sse-starlette](https://github.com/sysid/sse-starlette) streaming
+- **Dependency injection**: [dishka](https://dishka.readthedocs.io/) — providers in `container.py`, `FromDishka[...]` in routes
 {%- endif %}
 - **Config**: [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) with `.env` file
 
