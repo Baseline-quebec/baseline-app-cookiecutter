@@ -49,6 +49,23 @@ poe api --dev
 
 Access the API at [localhost:8000](http://localhost:8000) and the docs at [localhost:8000/docs](http://localhost:8000/docs).
 {%- endif %}
+
+### Dependency injection
+
+Collaborators are built in `src/{{ cookiecutter.__project_name_snake_case }}/container.py` with
+[dishka](https://dishka.readthedocs.io/). Routes declare what they need and
+construct nothing themselves:
+
+```python
+@app.get("/items")
+@inject
+async def list_items(service: FromDishka[ItemService]) -> list[Item]:
+    return service.list_all()
+```
+
+To add a service, add a `@provide` method to `CoreProvider`, then ask for it in a
+route. A provider that owns a connection should `yield` it instead of returning
+it, so dishka closes it on shutdown.
 {% endif %}
 {%- if cookiecutter.with_chatbot|int %}
 
@@ -75,10 +92,8 @@ The agent lives in `src/{{ cookiecutter.__project_name_snake_case }}/chat/`. To 
 - `service.py` — translates an agent run into `ChatEvent`s.
 - `router.py` — the HTTP surface.
 
-Collaborators are wired in `src/{{ cookiecutter.__project_name_snake_case }}/container.py` with
-[dishka](https://dishka.readthedocs.io/): routes declare `FromDishka[...]` under
-`@inject` and construct nothing themselves. Add a service by adding a `@provide`
-method there, then asking for it in a route.
+The agent, its store, and the service over them are wired in `container.py` like
+every other collaborator — see [Dependency injection](#dependency-injection).
 
 Tests use Pydantic AI's `TestModel` and `FunctionModel` behind a stub container,
 so `poe test` needs no API key and makes no network calls.
@@ -118,6 +133,8 @@ poe docs --serve  # serve documentation locally
 {%- endif %}
 {%- if cookiecutter.with_chatbot|int %}
 │   ├── chat/                                          # Pydantic AI chatbot
+{%- endif %}
+{%- if cookiecutter.with_fastapi_api|int %}
 │   ├── container.py                                   # dishka DI container
 {%- endif %}
 │   ├── models.py                                      # Pydantic models

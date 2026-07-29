@@ -178,6 +178,7 @@ class TestFastapiToggle:
         """FastAPI files are present when enabled."""
         project = bake(output_dir, with_fastapi_api="1")
         assert (project / "src" / "test_project" / "api.py").is_file()
+        assert (project / "src" / "test_project" / "container.py").is_file()
         assert (project / "src" / "test_project" / "models.py").is_file()
         assert (project / "src" / "test_project" / "services.py").is_file()
         assert (project / "tests" / "test_api.py").is_file()
@@ -186,6 +187,7 @@ class TestFastapiToggle:
         """FastAPI files are absent when disabled."""
         project = bake(output_dir, with_fastapi_api="0")
         assert not (project / "src" / "test_project" / "api.py").exists()
+        assert not (project / "src" / "test_project" / "container.py").exists()
         assert not (project / "src" / "test_project" / "models.py").exists()
         assert not (project / "tests" / "test_api.py").exists()
 
@@ -196,6 +198,28 @@ class TestFastapiToggle:
         assert "fastapi" in content
         assert "uvicorn" in content
         assert "gunicorn" in content
+        assert "dishka" in content
+
+    def test_fastapi_off_no_dishka(self, output_dir: Path) -> None:
+        """No dependency injection framework without an API to inject into."""
+        content = (bake(output_dir, with_fastapi_api="0") / "pyproject.toml").read_text()
+        assert "dishka" not in content
+
+    def test_routes_inject_from_dishka(self, output_dir: Path) -> None:
+        """Item routes take their service from the container.
+
+        Guards the DI convention shared with the other Baseline services: a route
+        declares `FromDishka[...]` under `@inject` rather than reaching for a
+        module-level singleton through `Depends`.
+        """
+        api = (
+            bake(output_dir, with_fastapi_api="1") / "src" / "test_project" / "api.py"
+        ).read_text()
+        assert "FromDishka[ItemService]" in api
+        assert "setup_dishka(container, app)" in api
+        assert "await app.state.dishka_container.close()" in api
+        assert "Depends" not in api
+        assert "global " not in api
 
 
 class TestTyperToggle:
@@ -240,25 +264,34 @@ class TestChatbot:
         assert (project / "tests" / "test_chat.py").is_file()
 
     def test_chatbot_off_files(self, output_dir: Path) -> None:
-        """Chat package, container, and tests are absent when disabled."""
+        """Chat package and tests are absent when disabled.
+
+        `container.py` stays: it is part of the API option, not the chatbot.
+        """
         project = bake(output_dir, with_chatbot="0")
         assert not (project / "src" / "test_project" / "chat").exists()
-        assert not (project / "src" / "test_project" / "container.py").exists()
         assert not (project / "tests" / "test_chat.py").exists()
 
+    def test_chatbot_off_container_has_no_chat_providers(self, output_dir: Path) -> None:
+        """The container wires up items only when the chatbot is disabled."""
+        content = (
+            bake(output_dir, with_chatbot="0") / "src" / "test_project" / "container.py"
+        ).read_text()
+        assert "provide_item_service" in content
+        assert "chat" not in content
+        assert "pydantic_ai" not in content
+
     def test_chatbot_on_deps(self, output_dir: Path) -> None:
-        """Pydantic AI, sse-starlette, and dishka are declared when enabled."""
+        """Pydantic AI and sse-starlette are declared when enabled."""
         content = (bake(output_dir, with_chatbot="1") / "pyproject.toml").read_text()
         assert "pydantic-ai-slim[anthropic]" in content
         assert "sse-starlette" in content
-        assert "dishka" in content
 
     def test_chatbot_off_deps(self, output_dir: Path) -> None:
         """No chat dependencies leak in when disabled."""
         content = (bake(output_dir, with_chatbot="0") / "pyproject.toml").read_text()
         assert "pydantic-ai" not in content
         assert "sse-starlette" not in content
-        assert "dishka" not in content
 
     def test_chatbot_on_router_mounted(self, output_dir: Path) -> None:
         """The API imports and mounts the chat router when enabled."""
@@ -267,17 +300,17 @@ class TestChatbot:
         assert "from test_project.chat.router import chat_router" in api
         assert "app.include_router(chat_router)" in api
 
-    def test_chatbot_on_dishka_wired(self, output_dir: Path) -> None:
-        """The API sets up the dishka container and closes it on shutdown."""
-        api = (
+    def test_chatbot_on_container_providers(self, output_dir: Path) -> None:
+        """The container gains the chat providers alongside the item service."""
+        content = (
             bake(output_dir, with_chatbot="1", with_fastapi_api="1")
             / "src"
             / "test_project"
-            / "api.py"
+            / "container.py"
         ).read_text()
-        assert "from test_project.container import make_container" in api
-        assert "setup_dishka(container, app)" in api
-        assert "await app.state.dishka_container.close()" in api
+        for method in ("provide_item_service", "provide_model", "provide_agent"):
+            assert method in content
+        assert "-> ChatService:" in content
 
     def test_chatbot_routes_inject_from_dishka(self, output_dir: Path) -> None:
         """Chat routes take their collaborators from the container.

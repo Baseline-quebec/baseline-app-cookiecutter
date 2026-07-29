@@ -25,17 +25,16 @@ if development_environment != "strict":
 # Remove FastAPI if not selected.
 if not with_fastapi_api:
     os.remove(f"src/{project_name}/api.py")
+    os.remove(f"src/{project_name}/container.py")
     os.remove(f"src/{project_name}/models.py")
     os.remove(f"src/{project_name}/services.py")
     os.remove("tests/test_api.py")
     if with_pytest_bdd:
         os.remove("tests/features/api.feature")
 
-# Remove the chatbot package if not selected. The dishka container only wires up
-# chat collaborators, so it goes with it.
+# Remove the chatbot package if not selected.
 if not with_chatbot:
     shutil.rmtree(f"src/{project_name}/chat", ignore_errors=True)
-    os.remove(f"src/{project_name}/container.py")
     os.remove("tests/test_chat.py")
 
 # Remove Typer if not selected.

@@ -2,8 +2,8 @@
 
 Every collaborator the API needs is built here, once, at `Scope.APP`. Routes ask
 for what they need with `FromDishka[...]` and never construct anything
-themselves, which is what makes them testable: a test swaps the container (see
-`tests/test_chat.py`) and no real client is ever created.
+themselves, which is what makes them testable: a test swaps the container and no
+real client is ever created.
 
 Providers that own a connection should `yield` it rather than `return` it, so
 dishka closes it when the app shuts down:
@@ -17,15 +17,20 @@ dishka closes it when the app shuts down:
 """
 
 from dishka import AsyncContainer, Provider, Scope, make_async_container, provide
+{%- if cookiecutter.with_chatbot|int %}
 from pydantic_ai import Agent
 from pydantic_ai.models import Model
+{%- endif %}
 
+{% if cookiecutter.with_chatbot|int -%}
 from {{ cookiecutter.__project_name_snake_case }}.chat.agent import ChatDeps, build_agent, build_model
 from {{ cookiecutter.__project_name_snake_case }}.chat.history import (
     ConversationStore,
     InMemoryConversationStore,
 )
 from {{ cookiecutter.__project_name_snake_case }}.chat.service import ChatService
+{% endif -%}
+from {{ cookiecutter.__project_name_snake_case }}.services import ItemService
 from {{ cookiecutter.__project_name_snake_case }}.settings import Settings, settings
 
 
@@ -42,14 +47,27 @@ class ConfigProvider(Provider):
 
 
 class CoreProvider(Provider):
-    """Provides the domain objects: the chat model, agent, store, and service.
+    """Provides the domain services.
 
-    This is where new services go as the project grows. Infrastructure adapters
-    (database clients, HTTP clients) belong in a separate `InfraProvider` so the
-    layers stay visible.
+    This is where a new service goes as the project grows: add a `@provide`
+    method returning it, then ask for it in a route with `FromDishka[...]`.
+    Infrastructure adapters (database clients, HTTP clients) belong in a separate
+    `InfraProvider` so the layers stay visible.
     """
 
     scope = Scope.APP
+
+    @provide
+    @staticmethod
+    def provide_item_service() -> ItemService:
+        """Create the item service.
+
+        `Scope.APP` means one instance for the whole application, which is what
+        the in-memory store needs to keep items between requests. A service that
+        holds per-request state would use `Scope.REQUEST` instead.
+        """
+        return ItemService()
+{%- if cookiecutter.with_chatbot|int %}
 
     @provide
     @staticmethod
@@ -79,6 +97,7 @@ class CoreProvider(Provider):
     def provide_chat_service(agent: Agent[ChatDeps, str], store: ConversationStore) -> ChatService:
         """Create the chat service with all injected dependencies."""
         return ChatService(agent=agent, store=store)
+{%- endif %}
 
 
 def make_container() -> AsyncContainer:

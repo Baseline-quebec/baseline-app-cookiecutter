@@ -12,12 +12,10 @@ license = "{% if cookiecutter.license == 'Proprietary' %}LicenseRef-Proprietary{
 requires-python = ">={{ cookiecutter.python_version }},<4.0"
 dependencies = [
 {%- if cookiecutter.with_fastapi_api|int %}
+  "dishka>=1.10.1",
   "fastapi[all]>=0.115.0",
   "loguru>=0.7.3",
   "gunicorn>=23.0.0",
-{%- endif %}
-{%- if cookiecutter.with_chatbot|int %}
-  "dishka>=1.10.1",
 {%- endif %}
 {%- if cookiecutter.project_type == "app" %}
   "poethepoet>=0.32.0",
