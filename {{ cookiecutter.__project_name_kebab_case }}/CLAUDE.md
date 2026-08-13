@@ -94,7 +94,6 @@ Le dossier `~/Claude/agents-dev/` contient les agents organisés par domaine. Le
 
 | Serveur | Usage |
 |---------|-------|
-| `context7` | Documentation technique à jour pour les librairies |
 | `playwright` | Automatisation navigateur, tests E2E, screenshots |
 
 Les serveurs org-spécifiques (atlassian, tempo, hubspot) s'ajoutent via le Contremaître.
