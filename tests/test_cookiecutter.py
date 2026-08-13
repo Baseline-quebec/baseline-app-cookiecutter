@@ -741,15 +741,6 @@ class TestClaudeCodeConfig:
         project = bake(output_dir)
         assert (project / ".mcp.json").is_file()
 
-    def test_mcp_json_has_context7(self, output_dir: Path) -> None:
-        """.mcp.json contains context7 server."""
-        import json
-
-        project = bake(output_dir)
-        content = json.loads((project / ".mcp.json").read_text())
-        assert "context7" in content["mcpServers"]
-        assert content["mcpServers"]["context7"]["command"] == "npx"
-
     def test_mcp_json_has_playwright(self, output_dir: Path) -> None:
         """.mcp.json contains playwright server."""
         import json
@@ -772,7 +763,6 @@ class TestClaudeCodeConfig:
         content = json.loads(
             (project / ".claude" / "settings.local.json").read_text()
         )
-        assert "context7" in content["enabledMcpjsonServers"]
         assert "playwright" in content["enabledMcpjsonServers"]
 
     def test_gitignore_has_claude_settings(self, output_dir: Path) -> None:
@@ -805,7 +795,6 @@ class TestClaudeCodeConfig:
         assert "Bash(gh pr *)" in allow
         assert "Edit" in allow
         assert "Write" in allow
-        assert "mcp__context7__query-docs" in allow
         assert "mcp__playwright__browser_snapshot" in allow
         assert "Bash(git reset --hard *)" in deny
         assert "Bash(rm *)" in deny
@@ -826,7 +815,6 @@ class TestClaudeCodeConfig:
         content = (project / "CLAUDE.md").read_text()
         assert "## Agents IA" in content
         assert "contremaitre" in content.lower()
-        assert "context7" in content
         assert "playwright" in content
 
 
