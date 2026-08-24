@@ -9,6 +9,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
+from cookiecutter.exceptions import FailedHookException
 from cookiecutter.main import cookiecutter
 
 
@@ -177,6 +178,7 @@ class TestFastapiToggle:
         """FastAPI files are present when enabled."""
         project = bake(output_dir, with_fastapi_api="1")
         assert (project / "src" / "test_project" / "api.py").is_file()
+        assert (project / "src" / "test_project" / "container.py").is_file()
         assert (project / "src" / "test_project" / "models.py").is_file()
         assert (project / "src" / "test_project" / "services.py").is_file()
         assert (project / "tests" / "test_api.py").is_file()
@@ -185,6 +187,7 @@ class TestFastapiToggle:
         """FastAPI files are absent when disabled."""
         project = bake(output_dir, with_fastapi_api="0")
         assert not (project / "src" / "test_project" / "api.py").exists()
+        assert not (project / "src" / "test_project" / "container.py").exists()
         assert not (project / "src" / "test_project" / "models.py").exists()
         assert not (project / "tests" / "test_api.py").exists()
 
@@ -195,6 +198,28 @@ class TestFastapiToggle:
         assert "fastapi" in content
         assert "uvicorn" in content
         assert "gunicorn" in content
+        assert "dishka" in content
+
+    def test_fastapi_off_no_dishka(self, output_dir: Path) -> None:
+        """No dependency injection framework without an API to inject into."""
+        content = (bake(output_dir, with_fastapi_api="0") / "pyproject.toml").read_text()
+        assert "dishka" not in content
+
+    def test_routes_inject_from_dishka(self, output_dir: Path) -> None:
+        """Item routes take their service from the container.
+
+        Guards the DI convention shared with the other Baseline services: a route
+        declares `FromDishka[...]` under `@inject` rather than reaching for a
+        module-level singleton through `Depends`.
+        """
+        api = (
+            bake(output_dir, with_fastapi_api="1") / "src" / "test_project" / "api.py"
+        ).read_text()
+        assert "FromDishka[ItemService]" in api
+        assert "setup_dishka(container, app)" in api
+        assert "await app.state.dishka_container.close()" in api
+        assert "Depends" not in api
+        assert "global " not in api
 
 
 class TestTyperToggle:
@@ -211,6 +236,135 @@ class TestTyperToggle:
         project = bake(output_dir, with_typer_cli="0")
         assert not (project / "src" / "test_project" / "cli.py").exists()
         assert not (project / "tests" / "test_cli.py").exists()
+
+
+# ---------------------------------------------------------------------------
+# Chatbot tests
+# ---------------------------------------------------------------------------
+
+
+class TestChatbot:
+    """Verify with_chatbot parameter behavior."""
+
+    def test_chatbot_on_files(self, output_dir: Path) -> None:
+        """Chat package and tests are present when enabled."""
+        project = bake(output_dir, with_chatbot="1", with_fastapi_api="1")
+        chat = project / "src" / "test_project" / "chat"
+        for module in (
+            "__init__",
+            "agent",
+            "event_sender",
+            "events",
+            "history",
+            "router",
+            "service",
+        ):
+            assert (chat / f"{module}.py").is_file()
+        assert (project / "src" / "test_project" / "container.py").is_file()
+        assert (project / "tests" / "test_chat.py").is_file()
+
+    def test_chatbot_off_files(self, output_dir: Path) -> None:
+        """Chat package and tests are absent when disabled.
+
+        `container.py` stays: it is part of the API option, not the chatbot.
+        """
+        project = bake(output_dir, with_chatbot="0")
+        assert not (project / "src" / "test_project" / "chat").exists()
+        assert not (project / "tests" / "test_chat.py").exists()
+
+    def test_chatbot_off_container_has_no_chat_providers(self, output_dir: Path) -> None:
+        """The container wires up items only when the chatbot is disabled."""
+        content = (
+            bake(output_dir, with_chatbot="0") / "src" / "test_project" / "container.py"
+        ).read_text()
+        assert "provide_item_service" in content
+        assert "chat" not in content
+        assert "pydantic_ai" not in content
+
+    def test_chatbot_on_deps(self, output_dir: Path) -> None:
+        """Pydantic AI and sse-starlette are declared when enabled."""
+        content = (bake(output_dir, with_chatbot="1") / "pyproject.toml").read_text()
+        assert "pydantic-ai-slim[anthropic]" in content
+        assert "sse-starlette" in content
+
+    def test_chatbot_off_deps(self, output_dir: Path) -> None:
+        """No chat dependencies leak in when disabled."""
+        content = (bake(output_dir, with_chatbot="0") / "pyproject.toml").read_text()
+        assert "pydantic-ai" not in content
+        assert "sse-starlette" not in content
+
+    def test_chatbot_on_router_mounted(self, output_dir: Path) -> None:
+        """The API imports and mounts the chat router when enabled."""
+        project = bake(output_dir, with_chatbot="1", with_fastapi_api="1")
+        api = (project / "src" / "test_project" / "api.py").read_text()
+        assert "from test_project.chat.router import chat_router" in api
+        assert "app.include_router(chat_router)" in api
+
+    def test_chatbot_on_container_providers(self, output_dir: Path) -> None:
+        """The container gains the chat providers alongside the item service."""
+        content = (
+            bake(output_dir, with_chatbot="1", with_fastapi_api="1")
+            / "src"
+            / "test_project"
+            / "container.py"
+        ).read_text()
+        for method in ("provide_item_service", "provide_model", "provide_agent"):
+            assert method in content
+        assert "-> ChatService:" in content
+
+    def test_chatbot_routes_inject_from_dishka(self, output_dir: Path) -> None:
+        """Chat routes take their collaborators from the container.
+
+        Guards the DI convention shared with the other Baseline chatbots: routes
+        declare `FromDishka[...]` under `@inject` and hold no module-level state.
+        """
+        router = (
+            bake(output_dir, with_chatbot="1", with_fastapi_api="1")
+            / "src"
+            / "test_project"
+            / "chat"
+            / "router.py"
+        ).read_text()
+        assert "FromDishka[ChatService]" in router
+        assert "FromDishka[ConversationStore]" in router
+        assert "Depends(" not in router
+        assert "global " not in router
+
+    def test_chatbot_off_router_not_mounted(self, output_dir: Path) -> None:
+        """The API has no chat references when disabled."""
+        project = bake(output_dir, with_chatbot="0", with_fastapi_api="1")
+        assert "chat" not in (project / "src" / "test_project" / "api.py").read_text()
+
+    def test_chatbot_on_settings_and_env(self, output_dir: Path) -> None:
+        """Chat settings and env placeholders are rendered when enabled."""
+        project = bake(output_dir, with_chatbot="1")
+        settings = (project / "src" / "test_project" / "settings.py").read_text()
+        assert "chat_model" in settings
+        assert "anthropic_api_key" in settings
+        env = (project / ".env.example").read_text()
+        assert "ANTHROPIC_API_KEY=" in env
+        assert "CHAT_MODEL=" in env
+
+    def test_chatbot_off_settings_clean(self, output_dir: Path) -> None:
+        """No chat settings or env placeholders when disabled."""
+        project = bake(output_dir, with_chatbot="0")
+        assert "chat_model" not in (project / "src" / "test_project" / "settings.py").read_text()
+        assert "ANTHROPIC_API_KEY" not in (project / ".env.example").read_text()
+
+    def test_chatbot_requires_fastapi(self, output_dir: Path) -> None:
+        """Enabling the chatbot without the API aborts generation."""
+        with pytest.raises(FailedHookException):
+            bake(output_dir, with_chatbot="1", with_fastapi_api="0")
+
+    def test_chatbot_needs_no_lint_exemption(self, output_dir: Path) -> None:
+        """The chatbot adds no per-file lint ignores.
+
+        The push-based service has no `yield` inside a cancel scope, so ASYNC119
+        never fires. If this starts failing, the streaming design has regressed
+        back to yielding across `Agent.iter`.
+        """
+        content = (bake(output_dir, with_chatbot="1") / "pyproject.toml").read_text()
+        assert "ASYNC119" not in content
 
 
 # ---------------------------------------------------------------------------

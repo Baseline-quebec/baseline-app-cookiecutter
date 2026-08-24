@@ -4,21 +4,25 @@ import sys
 import time
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, Request, Response
+from dishka.integrations.fastapi import FromDishka, inject, setup_dishka
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 from loguru import logger
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
+{% if cookiecutter.with_chatbot|int -%}
+from {{ cookiecutter.__project_name_snake_case }}.chat.router import chat_router, shutdown_chat
+{% endif -%}
+from {{ cookiecutter.__project_name_snake_case }}.container import make_container
 from {{ cookiecutter.__project_name_snake_case }}.models import HealthResponse, Item, ItemCreate
 from {{ cookiecutter.__project_name_snake_case }}.services import ItemService
 from {{ cookiecutter.__project_name_snake_case }}.settings import settings
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncGenerator[None]:  # noqa: ARG001
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     """Handle FastAPI startup and shutdown events."""
     logger.remove()
     logger.add(sys.stderr, level=settings.log_level)
@@ -35,23 +39,27 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:  # noqa: ARG001
         logger.info("Sentry initialized for environment '{}'", settings.sentry_environment)
 {%- endif %}
 
-    yield
+    try:
+        yield
+    finally:
+{%- if cookiecutter.with_chatbot|int %}
+        # An agent run outlives the response that started it, so let any
+        # in-flight turn finish and persist before the app goes away.
+        await shutdown_chat()
+{%- endif %}
+        await app.state.dishka_container.close()
 
 
 app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
+# Wires the dishka container into the app: routes decorated with `@inject` can
+# then declare `FromDishka[...]` parameters. `lifespan` closes it on shutdown.
+container = make_container()
+setup_dishka(container, app)
+{%- if cookiecutter.with_chatbot|int %}
 
-# --- Dependency injection --------------------------------------------------------
-
-
-def get_item_service() -> ItemService:
-    """Provide the shared ItemService instance."""
-    return _item_service
-
-
-_item_service = ItemService()
-
-ItemServiceDep = Annotated[ItemService, Depends(get_item_service)]
+app.include_router(chat_router)
+{%- endif %}
 
 
 # --- Middleware ------------------------------------------------------------------
@@ -111,19 +119,22 @@ async def health() -> HealthResponse:
 
 
 @app.post("/items", status_code=201)
-async def create_item(data: ItemCreate, service: ItemServiceDep) -> Item:
+@inject
+async def create_item(data: ItemCreate, service: FromDishka[ItemService]) -> Item:
     """Create a new item."""
     return service.create(data)
 
 
 @app.get("/items")
-async def list_items(service: ItemServiceDep) -> list[Item]:
+@inject
+async def list_items(service: FromDishka[ItemService]) -> list[Item]:
     """List all items."""
     return service.list_all()
 
 
 @app.get("/items/{item_id}")
-async def get_item(item_id: int, service: ItemServiceDep) -> Item:
+@inject
+async def get_item(item_id: int, service: FromDishka[ItemService]) -> Item:
     """Get a single item by id."""
     item = service.get(item_id)
     if item is None:

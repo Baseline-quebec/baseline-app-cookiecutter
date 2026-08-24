@@ -17,7 +17,7 @@ jobs:
         include:
           - python-version: "3.12"
             variant: full
-            extra-context: '{"project_type": "app", "project_name": "My Project", "python_version": "3.12", "with_fastapi_api": "1", "with_typer_cli": "1", "with_sentry": "0"}'
+            extra-context: '{"project_type": "app", "project_name": "My Project", "python_version": "3.12", "with_fastapi_api": "1", "with_typer_cli": "1", "with_chatbot": "1", "with_sentry": "0"}'
           - python-version: "3.13"
             variant: minimal
             extra-context: '{"project_type": "app", "project_name": "My Project", "python_version": "3.13", "with_fastapi_api": "0", "with_typer_cli": "0", "with_sentry": "0"}'

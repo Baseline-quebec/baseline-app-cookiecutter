@@ -7,6 +7,7 @@ project_name = "{{ cookiecutter.project_name }}"
 python_version = "{{ cookiecutter.python_version }}"
 with_sentry = int("{{ cookiecutter.with_sentry }}")
 with_fastapi_api = int("{{ cookiecutter.with_fastapi_api }}")
+with_chatbot = int("{{ cookiecutter.with_chatbot }}")
 
 # Validate project_name: letters, digits, spaces, hyphens.
 if not re.match(r"^[A-Za-z0-9 -]+$", project_name):
@@ -32,3 +33,10 @@ if with_sentry and not with_fastapi_api:
         "WARNING: with_sentry=1 has no effect without with_fastapi_api=1. "
         "Sentry integration requires FastAPI."
     )
+
+# The chatbot ships a streaming (SSE) chat route, so it cannot be generated
+# without the API. Unlike Sentry this is a hard error: the generated package
+# would import a router that has no app to mount it on.
+if with_chatbot and not with_fastapi_api:
+    print("ERROR: with_chatbot=1 requires with_fastapi_api=1 (the chat route is a FastAPI SSE endpoint).")
+    sys.exit(1)

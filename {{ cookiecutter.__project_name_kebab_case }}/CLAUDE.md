@@ -57,9 +57,13 @@ uv run poe api --dev      # start FastAPI dev server
 - **CI**: GitHub Actions in devcontainer
 {%- if cookiecutter.with_fastapi_api|int %}
 - **API**: [FastAPI](https://fastapi.tiangolo.com/) + [Pydantic](https://docs.pydantic.dev/)
+- **Dependency injection**: [dishka](https://dishka.readthedocs.io/) — providers in `container.py`, `FromDishka[...]` in routes
 {%- endif %}
 {%- if cookiecutter.with_typer_cli|int %}
 - **CLI**: [Typer](https://typer.tiangolo.com/) + [Rich](https://rich.readthedocs.io/)
+{%- endif %}
+{%- if cookiecutter.with_chatbot|int %}
+- **Chatbot**: [Pydantic AI](https://ai.pydantic.dev/) agent + [sse-starlette](https://github.com/sysid/sse-starlette) streaming
 {%- endif %}
 - **Config**: [pydantic-settings](https://docs.pydantic.dev/latest/concepts/pydantic_settings/) with `.env` file
 
