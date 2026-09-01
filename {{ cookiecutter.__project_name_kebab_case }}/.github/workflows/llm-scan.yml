@@ -28,3 +28,4 @@ jobs:
         with:
           repo-name: {% raw %}${{{% endraw %} github.repository }}
           assignees: {% raw %}${{{% endraw %} vars.LLM_SCAN_ASSIGNEES || '' }}
+          webhook-url: {% raw %}${{{% endraw %} secrets.LLM_SCAN_WEBHOOK_URL }}
