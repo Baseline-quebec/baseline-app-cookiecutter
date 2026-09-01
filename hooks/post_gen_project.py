@@ -2,11 +2,13 @@
 
 import os
 import shutil
+from pathlib import Path
 
 # Read Cookiecutter configuration.
 project_name = "{{ cookiecutter.__project_name_snake_case }}"
 development_environment = "{{ cookiecutter.development_environment }}"
 with_conventional_commits = int("{{ cookiecutter.with_conventional_commits }}")
+mcp_profile = "{{ cookiecutter.mcp_profile }}"
 with_fastapi_api = int("{{ cookiecutter.with_fastapi_api }}")
 with_typer_cli = int("{{ cookiecutter.with_typer_cli }}")
 with_pytest_bdd = int("{{ cookiecutter.with_pytest_bdd }}")
@@ -48,3 +50,56 @@ if not with_pytest_bdd:
 # Remove LICENSE file for proprietary projects.
 if license_choice == "Proprietary":
     os.remove("LICENSE")
+
+# ── MCP Profile: interactive server selection ───────────────────
+BASELINE_DIR = Path.home() / ".baseline"
+CONFIG_DIR = BASELINE_DIR / "mcp-config"
+REGISTRY_PATH = CONFIG_DIR / "registry.yaml"
+PROFILE_PATH = CONFIG_DIR / "profiles" / f"{mcp_profile}.yaml"
+
+if REGISTRY_PATH.exists() and PROFILE_PATH.exists():
+    try:
+        import yaml
+
+        with open(REGISTRY_PATH) as f:
+            registry = yaml.safe_load(f)
+        with open(PROFILE_PATH) as f:
+            profile = yaml.safe_load(f)
+
+        servers = profile["servers"]
+        print(f"\n  Serveurs MCP du profil '{mcp_profile}':")
+        for i, name in enumerate(servers, 1):
+            server = registry["servers"].get(name, {})
+            server_type = server.get("type", "?")
+            print(f"    {i}. {name} ({server_type})")
+
+        print(f"\n  Modifier la selection? (Enter pour accepter, ou +serveur/-serveur)")
+        user_input = input("  > ").strip()
+
+        if user_input:
+            selected = set(servers)
+            for token in user_input.split():
+                if token.startswith("-"):
+                    selected.discard(token[1:])
+                elif token.startswith("+"):
+                    server_name = token[1:]
+                    if server_name in registry["servers"]:
+                        selected.add(server_name)
+                    else:
+                        print(f"    ⚠ '{server_name}' n'existe pas dans le registry")
+
+            # Write extended format with selected servers
+            with open(".mcp-profile", "w") as f:
+                f.write(f"profile: {mcp_profile}\nservers:\n")
+                for s in selected:
+                    f.write(f"  - {s}\n")
+            print(f"  ✓ .mcp-profile ecrit ({len(selected)} serveurs)")
+        else:
+            print(f"  ✓ .mcp-profile ecrit (profil complet, {len(servers)} serveurs)")
+
+    except ImportError:
+        print("  ⚠ PyYAML non disponible — .mcp-profile ecrit avec le profil complet")
+    except Exception as e:
+        print(f"  ⚠ Erreur MCP: {e} — .mcp-profile ecrit avec le profil complet")
+else:
+    print(f"  ℹ mcp-config non installe — .mcp-profile ecrit avec le profil '{mcp_profile}'")
