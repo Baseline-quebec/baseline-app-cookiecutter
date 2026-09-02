@@ -1,0 +1,78 @@
+{%- if cookiecutter.with_terraform_workflow|int %}
+# yaml-language-server: $schema=https://json.schemastore.org/github-action.json
+name: "Terraform: Plan & Apply"
+description: "Plans and applies Terraform configuration on Azure."
+
+inputs:
+  client-id:
+    required: true
+  client-secret:
+    required: true
+  tenant-id:
+    required: true
+  subscription-id:
+    required: true
+  state-resource-group-name:
+    required: true
+  state-storage-account-name:
+    required: true
+  state-container-name:
+    required: true
+  var-file:
+    required: true
+  github-token:
+    required: true
+  working-directory:
+    default: "iac"
+  terraform-version:
+    default: "1.14.0"
+
+runs:
+  using: "composite"
+  steps:
+    - uses: azure/login@v2
+      with:
+        creds: '{"clientId":"{% raw %}${{{% endraw %} inputs.client-id }}","clientSecret":"{% raw %}${{{% endraw %} inputs.client-secret }}","subscriptionId":"{% raw %}${{{% endraw %} inputs.subscription-id }}","tenantId":"{% raw %}${{{% endraw %} inputs.tenant-id }}"}'
+
+    - uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: {% raw %}${{{% endraw %} inputs.terraform-version }}
+        terraform_wrapper: false
+
+    - name: Terraform Init
+      shell: bash
+      working-directory: {% raw %}${{{% endraw %} inputs.working-directory }}
+      run: |
+        terraform init \
+          -backend-config="resource_group_name={% raw %}${{{% endraw %} inputs.state-resource-group-name }}" \
+          -backend-config="storage_account_name={% raw %}${{{% endraw %} inputs.state-storage-account-name }}" \
+          -backend-config="container_name={% raw %}${{{% endraw %} inputs.state-container-name }}" \
+          -backend-config="key=terraform.tfstate"
+      env:
+        ARM_CLIENT_ID: {% raw %}${{{% endraw %} inputs.client-id }}
+        ARM_CLIENT_SECRET: {% raw %}${{{% endraw %} inputs.client-secret }}
+        ARM_TENANT_ID: {% raw %}${{{% endraw %} inputs.tenant-id }}
+        ARM_SUBSCRIPTION_ID: {% raw %}${{{% endraw %} inputs.subscription-id }}
+
+    - name: Terraform Plan
+      id: plan
+      shell: bash
+      working-directory: {% raw %}${{{% endraw %} inputs.working-directory }}
+      run: terraform plan -no-color -var-file={% raw %}${{{% endraw %} inputs.var-file }} -out=plan.tfplan
+      env:
+        ARM_CLIENT_ID: {% raw %}${{{% endraw %} inputs.client-id }}
+        ARM_CLIENT_SECRET: {% raw %}${{{% endraw %} inputs.client-secret }}
+        ARM_TENANT_ID: {% raw %}${{{% endraw %} inputs.tenant-id }}
+        ARM_SUBSCRIPTION_ID: {% raw %}${{{% endraw %} inputs.subscription-id }}
+
+    - name: Terraform Apply
+      if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+      shell: bash
+      working-directory: {% raw %}${{{% endraw %} inputs.working-directory }}
+      run: terraform apply -auto-approve plan.tfplan
+      env:
+        ARM_CLIENT_ID: {% raw %}${{{% endraw %} inputs.client-id }}
+        ARM_CLIENT_SECRET: {% raw %}${{{% endraw %} inputs.client-secret }}
+        ARM_TENANT_ID: {% raw %}${{{% endraw %} inputs.tenant-id }}
+        ARM_SUBSCRIPTION_ID: {% raw %}${{{% endraw %} inputs.subscription-id }}
+{%- endif %}

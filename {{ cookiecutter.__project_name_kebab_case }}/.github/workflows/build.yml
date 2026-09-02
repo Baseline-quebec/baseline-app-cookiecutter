@@ -1,0 +1,48 @@
+{%- if cookiecutter.with_docker_workflow|int %}
+name: Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "Dockerfile"
+      - ".github/workflows/build.yml"
+  pull_request:
+    types: [synchronize, opened, reopened, ready_for_review]
+    paths:
+      - "src/**"
+      - "Dockerfile"
+      - ".github/workflows/build.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: {% raw %}${{{% endraw %} github.workflow }}-{% raw %}${{{% endraw %} github.ref }}
+  cancel-in-progress: {% raw %}${{{% endraw %} github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment: dev
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set image tag
+        id: vars
+        run: echo "tag=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - uses: ./.github/workflows/docker-build-and-push
+        with:
+          registry-url: {% raw %}${{{% endraw %} vars.DOCKER_REGISTRY }}
+          registry-username: {% raw %}${{{% endraw %} secrets.DOCKER_USERNAME }}
+          registry-password: {% raw %}${{{% endraw %} secrets.DOCKER_PASSWORD }}
+          docker-images: |
+            {% raw %}${{{% endraw %} vars.DOCKER_REGISTRY }}/{{ cookiecutter.__project_name_kebab_case }}:{% raw %}${{{% endraw %} steps.vars.outputs.tag }}
+            {% raw %}${{{% endraw %} vars.DOCKER_REGISTRY }}/{{ cookiecutter.__project_name_kebab_case }}:latest
+          cache-export: {% raw %}${{{% endraw %} github.ref == 'refs/heads/main' }}
+{%- endif %}

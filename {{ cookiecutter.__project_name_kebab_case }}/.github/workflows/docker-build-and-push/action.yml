@@ -1,0 +1,58 @@
+{%- if cookiecutter.with_docker_workflow|int %}
+# yaml-language-server: $schema=https://json.schemastore.org/github-action.json
+name: "Docker: Build and Push"
+description: "Builds and pushes a Docker image to a container registry."
+
+inputs:
+  docker-images:
+    required: true
+    description: "Fully-qualified Docker image tags (one per line)."
+  registry-url:
+    required: true
+    description: "Container registry URL."
+  registry-username:
+    required: true
+    description: "Registry username."
+  registry-password:
+    required: true
+    description: "Registry password."
+  context:
+    required: false
+    default: "."
+    description: "Docker build context path."
+  dockerfile-path:
+    required: false
+    default: "."
+    description: "Path to directory containing Dockerfile."
+  build-args:
+    required: false
+    description: "Build arguments (one per line)."
+  cache-export:
+    required: false
+    default: "false"
+    description: "Export full cache (mode=max). Use 'true' on main branch."
+
+runs:
+  using: "composite"
+  steps:
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Docker login
+      uses: docker/login-action@v3
+      with:
+        registry: {% raw %}${{{% endraw %} inputs.registry-url }}
+        username: {% raw %}${{{% endraw %} inputs.registry-username }}
+        password: {% raw %}${{{% endraw %} inputs.registry-password }}
+
+    - name: Build and Push
+      uses: docker/build-push-action@v6
+      with:
+        push: true
+        context: {% raw %}${{{% endraw %} inputs.context }}
+        file: {% raw %}${{{% endraw %} inputs.dockerfile-path }}/Dockerfile
+        build-args: {% raw %}${{{% endraw %} inputs.build-args }}
+        tags: {% raw %}${{{% endraw %} inputs.docker-images }}
+        cache-from: type=gha
+        cache-to: {% raw %}${{{% endraw %} inputs.cache-export == 'true' && 'type=gha,mode=max' || 'type=gha,mode=min' }}
+{%- endif %}
