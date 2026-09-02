@@ -6,11 +6,20 @@ on:
       - main
       - master
   pull_request:
+    types: [synchronize, opened, reopened, ready_for_review]
   workflow_dispatch:
+
+concurrency:
+  group: {% raw %}${{{% endraw %} github.workflow }}-{% raw %}${{{% endraw %} github.ref }}
+  cancel-in-progress: {% raw %}${{{% endraw %} github.ref != 'refs/heads/main' }}
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    permissions:
+      contents: read
 
     strategy:
       fail-fast: false

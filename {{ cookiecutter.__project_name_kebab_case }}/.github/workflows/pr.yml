@@ -5,9 +5,16 @@ on:
   pull_request:
     types: [edited, opened, reopened, synchronize]
 
+concurrency:
+  group: {% raw %}${{{% endraw %} github.workflow }}-{% raw %}${{{% endraw %} github.ref }}
+  cancel-in-progress: true
+
 jobs:
   title:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
     name: Check PR title
     steps:
       - name: Set up Python
