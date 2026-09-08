@@ -6,9 +6,19 @@ on:
       - main
   pull_request:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    # This job generates a project and builds its devcontainer, so it is the
+    # slow one here — measured at ~4 min against ~35s for the others.
+    timeout-minutes: 30
 
     strategy:
       fail-fast: false

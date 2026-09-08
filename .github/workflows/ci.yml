@@ -5,9 +5,21 @@ on:
     branches: [main]
   pull_request:
 
+# Keyed on head_ref rather than github.ref, which on a pull_request event is
+# refs/pull/<n>/merge rather than the branch — the push and pull_request runs of
+# one commit would otherwise sit in separate groups and never supersede each
+# other. github.ref is the fallback for push, where head_ref is empty.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     strategy:
       fail-fast: false
       matrix:

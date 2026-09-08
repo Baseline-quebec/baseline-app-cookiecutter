@@ -13,8 +13,13 @@ on:
       - ".github/workflows/terraform.yml"
   workflow_dispatch:
 
+# Keyed on head_ref, not github.ref: on a pull_request event github.ref is
+# refs/pull/<n>/merge rather than the branch, so the push and pull_request
+# runs of one commit land in separate groups and neither supersedes the
+# other. github.ref stays as the fallback for push, schedule and
+# workflow_dispatch, where head_ref is empty.
 concurrency:
-  group: {% raw %}${{{% endraw %} github.workflow }}-{% raw %}${{{% endraw %} github.ref }}
+  group: {% raw %}${{{% endraw %} github.workflow }}-{% raw %}${{{% endraw %} github.head_ref || github.ref }}
   cancel-in-progress: {% raw %}${{{% endraw %} github.event_name == 'pull_request' }}
 
 permissions:
