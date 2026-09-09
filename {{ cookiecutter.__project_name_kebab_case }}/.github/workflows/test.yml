@@ -43,15 +43,32 @@ jobs:
           node-version: 22
 
       - name: Install @devcontainers/cli
-        run: npm install --location=global @devcontainers/cli@latest
+        # Pinned rather than @latest: an unpinned CLI means the version that
+        # builds the devcontainer changes under the project without a commit,
+        # so a green pipeline can turn red on someone else's release. 0.58.0 is
+        # what the two Baseline projects running this setup use in production;
+        # npm's latest is 0.89.0, so the gap is worth crossing deliberately
+        # rather than silently. Bump it here and every generated project follows.
+        run: npm install --location=global @devcontainers/cli@0.58.0
 
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: {% raw %}${{{% endraw %} runner.os }}-docker-{% raw %}${{{% endraw %} hashFiles('**/uv.lock') }}
-          restore-keys: |
-            {% raw %}${{{% endraw %} runner.os }}-docker-
+      # A "Cache Docker layers" step used to sit here, caching /tmp/.buildx-cache
+      # with BUILDKIT_INLINE_CACHE=1 on the build below. It never cached
+      # anything, for two independent reasons:
+      #
+      #   - The inline cache exporter embeds cache metadata into the *pushed
+      #     image's* config; by design it writes nothing to a local directory.
+      #     Filling /tmp/.buildx-cache needs `--cache-to type=local,dest=...`,
+      #     which `devcontainer up` does not pass.
+      #   - The devcontainer image is never pushed anywhere, so an exporter that
+      #     works through the pushed image has no target either way.
+      #
+      # So actions/cache did a restore and a save of an empty directory on every
+      # run. Removed rather than left as decoration.
+      #
+      # Making it real means having buildx build the devcontainer image (or
+      # publishing it to a registry and pulling by a content-addressed tag, which
+      # is what the downstream monorepo does — 18 min down to ~20s). That is a
+      # larger change than this template should carry by default.
 
       # mypy runs strict over src/** and tests/** in `poe lint`, and rebuilds its
       # cache from nothing every run because .mypy_cache is gitignored and
@@ -83,7 +100,7 @@ jobs:
       - name: Start Dev Container
         run: |
           git config --global init.defaultBranch main
-          PYTHON_VERSION={% raw %}${{{% endraw %} matrix.python-version }} BUILDKIT_INLINE_CACHE=1 devcontainer up --workspace-folder .
+          PYTHON_VERSION={% raw %}${{{% endraw %} matrix.python-version }} devcontainer up --workspace-folder .
 
       - name: Lint {{ cookiecutter.project_type }}
         run: devcontainer exec --workspace-folder . poe lint
