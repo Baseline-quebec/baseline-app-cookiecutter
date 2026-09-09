@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `ruff-check` and `ruff-format` pre-commit hooks for template code
 - `pre-commit-hooks` (check-yaml, check-toml, end-of-file-fixer, trailing-whitespace)
 - 71 unit tests for template generation (up from 0)
+- mypy cache in the generated `test.yml` — 171s cold vs 14s warm, measured downstream
+- `concurrency`, `timeout-minutes` and `permissions` on this repo's own workflows
 
 ### Changed
 
@@ -33,6 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Modernized integration workflow: checkout v6, pip cache, renamed to "Integration"
 - Fixed generated CONTRIBUTING.md typos and added codespell to tools list
 - Fixed `.env.sample` reference to `.env.example` in generated README
+- Pinned `@devcontainers/cli` to 0.58.0 instead of `@latest`, for reproducible builds
+- Removed `--failed-first` from generated `addopts` — inert in CI, where `.pytest_cache` is never restored
 
 ### Fixed
 
@@ -41,6 +45,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Jinja whitespace in cli.py imports causing ruff format failure
 - Unused `import sys` and stale noqa comments (S310, BLE001) in cli.py
 - Coverage failure in minimal config (added settings test)
+- Shell injection in `pr.yml` (generated and this repo's) — the PR title was interpolated into the `cz check` command; it now reaches the shell through the environment
+- Concurrency keyed on `github.ref`, which is `refs/pull/<n>/merge` on pull requests, so push and PR runs of one commit never superseded each other; now `github.head_ref || github.ref`
+- Removed the "Cache Docker layers" step — the inline cache exporter writes nothing to a local directory and the devcontainer image is never pushed, so it saved an empty directory on every run
 
 ---
 
