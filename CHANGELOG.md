@@ -35,7 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Modernized integration workflow: checkout v6, pip cache, renamed to "Integration"
 - Fixed generated CONTRIBUTING.md typos and added codespell to tools list
 - Fixed `.env.sample` reference to `.env.example` in generated README
-- Pinned `@devcontainers/cli` to 0.58.0 instead of `@latest`, for reproducible builds
+- Pinned `@devcontainers/cli` to 0.89.0 instead of `@latest`, for reproducible builds
+- `ubuntu-latest` → `ubuntu-24.04` in this repo's own three workflows
 - Removed `--failed-first` from generated `addopts` — inert in CI, where `.pytest_cache` is never restored
 
 ### Fixed
@@ -48,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Shell injection in `pr.yml` (generated and this repo's) — the PR title was interpolated into the `cz check` command; it now reaches the shell through the environment
 - Concurrency keyed on `github.ref`, which is `refs/pull/<n>/merge` on pull requests, so push and PR runs of one commit never superseded each other; now `github.head_ref || github.ref`
 - Removed the "Cache Docker layers" step — the inline cache exporter writes nothing to a local directory and the devcontainer image is never pushed, so it saved an empty directory on every run
+- Removed `github-token` from the Terraform composite and `pull-requests: write` from the workflow granting it — the input was `required: true` but never consumed, so callers passed a token for nothing
 
 ---
 
