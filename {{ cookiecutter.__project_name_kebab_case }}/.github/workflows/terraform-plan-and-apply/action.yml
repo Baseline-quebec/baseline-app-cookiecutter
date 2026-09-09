@@ -20,8 +20,12 @@ inputs:
     required: true
   var-file:
     required: true
-  github-token:
-    required: true
+  # `github-token` a été retiré : il était déclaré `required: true` sans jamais
+  # être consommé — aucun step de cette action ne commente sur la PR. Le déclarer
+  # obligeait chaque appelant à passer GITHUB_TOKEN pour rien, et la permission
+  # `pull-requests: write` qui l'accompagnait dans terraform.yml élargissait le
+  # jeton sans usage. Si un commentaire de plan est ajouté un jour, remettre les
+  # deux ensemble.
   working-directory:
     default: "iac"
   terraform-version:

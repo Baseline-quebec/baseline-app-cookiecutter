@@ -22,9 +22,11 @@ concurrency:
   group: {% raw %}${{{% endraw %} github.workflow }}-{% raw %}${{{% endraw %} github.head_ref || github.ref }}
   cancel-in-progress: {% raw %}${{{% endraw %} github.event_name == 'pull_request' }}
 
+# `pull-requests: write` a été retiré avec l'input `github-token` du composite :
+# aucun step ne commente sur la PR, donc le jeton était élargi sans usage. À
+# remettre si un commentaire de plan Terraform est ajouté.
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   deploy:
@@ -44,5 +46,4 @@ jobs:
           state-storage-account-name: {% raw %}${{{% endraw %} vars.TF_STATE_STORAGE_ACCOUNT }}
           state-container-name: {% raw %}${{{% endraw %} vars.TF_STATE_CONTAINER }}
           var-file: envs/dev.tfvars
-          github-token: {% raw %}${{{% endraw %} secrets.GITHUB_TOKEN }}
 {%- endif %}

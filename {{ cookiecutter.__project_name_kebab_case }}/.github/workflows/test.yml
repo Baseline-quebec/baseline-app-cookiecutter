@@ -44,12 +44,23 @@ jobs:
 
       - name: Install @devcontainers/cli
         # Pinned rather than @latest: an unpinned CLI means the version that
-        # builds the devcontainer changes under the project without a commit,
-        # so a green pipeline can turn red on someone else's release. 0.58.0 is
-        # what the two Baseline projects running this setup use in production;
-        # npm's latest is 0.89.0, so the gap is worth crossing deliberately
-        # rather than silently. Bump it here and every generated project follows.
-        run: npm install --location=global @devcontainers/cli@0.58.0
+        # builds the devcontainer changes under the project without a commit, so
+        # a green pipeline can turn red on someone else's release.
+        #
+        # Pinned to a *current* version on purpose. An earlier revision pinned
+        # 0.58.0 because that is what the two existing Baseline projects run —
+        # but 0.58.0 is from 2024-03-22 and 0.89.0 from 2026-08-31, so matching
+        # them would freeze every project generated from here on ~2.5 years and
+        # 31 minor versions of drift. Determinism comes from pinning at all; the
+        # choice of version is a separate decision. Neither release has a known
+        # advisory (`npm audit`: 0 vulnerabilities on both), so this is a
+        # maintenance call, not a security one.
+        #
+        # Nothing watches this pin automatically: Dependabot's github-actions
+        # ecosystem only tracks `uses:` references, not an npm package installed
+        # inside a `run:`. So it will not move on its own — bump it here when the
+        # template is touched, and every generated project follows.
+        run: npm install --location=global @devcontainers/cli@0.89.0
 
       # A "Cache Docker layers" step used to sit here, caching /tmp/.buildx-cache
       # with BUILDKIT_INLINE_CACHE=1 on the build below. It never cached
@@ -72,9 +83,11 @@ jobs:
 
       # mypy runs strict over src/** and tests/** in `poe lint`, and rebuilds its
       # cache from nothing every run because .mypy_cache is gitignored and
-      # nothing persists it. Measured on a downstream project with this same
-      # configuration (505 files): 171s cold, 14s warm, and still ~9s after a
-      # real source edit.
+      # nothing persists it. Measured on a downstream project running mypy strict
+      # with the pydantic plugin over 505 files: 171s cold, 14s warm, and still
+      # ~9s after a real source edit. That project uses Poetry rather than uv, so
+      # the numbers show the order of magnitude, not a like-for-like run of this
+      # template.
       #
       # The key deliberately does NOT hash the source. mypy's incremental mode
       # already reanalyses only what changed and its dependents — which is why a
@@ -86,6 +99,24 @@ jobs:
       #
       # python-version is in the key because mypy stores its cache per
       # interpreter version, and this job is a matrix over more than one.
+      #
+      # WHAT TO WATCH. actions/cache never replaces an entry — a new key writes a
+      # new one — and this key changes on every lockfile bump, with restore-keys
+      # making each new entry start full. On the downstream project .mypy_cache
+      # measured 506 MB, so at one entry per bump per Python version the 10 GB
+      # per-repository cache budget is reachable within roughly ten bumps. Past
+      # that GitHub evicts by least-recent-use, and it evicts across the whole
+      # repository, so this cache can push out entries other workflows depend on.
+      # Check `gh api repos/{owner}/{repo}/actions/cache/usage` if builds start
+      # missing caches they used to hit; the remedy is deleting stale mypy
+      # entries, not raising the budget, which is fixed.
+      #
+      # Also note uv.lock does not exist on the first run of a freshly generated
+      # project: the Dockerfile copies it with an optional glob and `uv sync`
+      # writes it inside the container, which happens in `Start Dev Container`
+      # below — after this step. hashFiles tolerates the missing file, so the key
+      # is stable, but on that first run it hashes pyproject.toml alone and then
+      # changes once uv.lock is committed, leaving one orphaned entry behind.
       - name: Cache mypy
         uses: actions/cache@v4
         with:

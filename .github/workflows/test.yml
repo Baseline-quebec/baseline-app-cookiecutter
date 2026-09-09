@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # This job generates a project and builds its devcontainer, so it is the
     # slow one here — measured at ~4 min against ~35s for the others.
     timeout-minutes: 30
@@ -63,7 +63,7 @@ jobs:
       - name: Install @devcontainers/cli
         # Pinned for the same reason as the generated workflow: an unpinned CLI
         # changes under this repo without a commit. Keep the two in sync.
-        run: npm install --location=global @devcontainers/cli@0.58.0
+        run: npm install --location=global @devcontainers/cli@0.89.0
 
       - name: Start Dev Container with Python ${{ matrix.python-version }}
         run: |
