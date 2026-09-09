@@ -10,6 +10,8 @@ with_conventional_commits = int("{{ cookiecutter.with_conventional_commits }}")
 with_fastapi_api = int("{{ cookiecutter.with_fastapi_api }}")
 with_typer_cli = int("{{ cookiecutter.with_typer_cli }}")
 with_pytest_bdd = int("{{ cookiecutter.with_pytest_bdd }}")
+with_docker_workflow = int("{{ cookiecutter.with_docker_workflow }}")
+with_terraform_workflow = int("{{ cookiecutter.with_terraform_workflow }}")
 license_choice = "{{ cookiecutter.license }}"
 
 # Remove PR title check workflow if conventional commits is disabled.
@@ -48,3 +50,13 @@ if not with_pytest_bdd:
 # Remove LICENSE file for proprietary projects.
 if license_choice == "Proprietary":
     os.remove("LICENSE")
+
+# Remove Docker workflow files if not selected.
+if not with_docker_workflow:
+    os.remove(".github/workflows/build.yml")
+    shutil.rmtree(".github/workflows/docker-build-and-push", ignore_errors=True)
+
+# Remove Terraform workflow files if not selected.
+if not with_terraform_workflow:
+    os.remove(".github/workflows/terraform.yml")
+    shutil.rmtree(".github/workflows/terraform-plan-and-apply", ignore_errors=True)

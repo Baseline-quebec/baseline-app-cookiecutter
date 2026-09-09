@@ -1,0 +1,49 @@
+{%- if cookiecutter.with_terraform_workflow|int %}
+name: Terraform
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "iac/**"
+      - ".github/workflows/terraform.yml"
+  pull_request:
+    paths:
+      - "iac/**"
+      - ".github/workflows/terraform.yml"
+  workflow_dispatch:
+
+# Keyed on head_ref, not github.ref: on a pull_request event github.ref is
+# refs/pull/<n>/merge rather than the branch, so the push and pull_request
+# runs of one commit land in separate groups and neither supersedes the
+# other. github.ref stays as the fallback for push, schedule and
+# workflow_dispatch, where head_ref is empty.
+concurrency:
+  group: {% raw %}${{{% endraw %} github.workflow }}-{% raw %}${{{% endraw %} github.head_ref || github.ref }}
+  cancel-in-progress: {% raw %}${{{% endraw %} github.event_name == 'pull_request' }}
+
+# `pull-requests: write` a été retiré avec l'input `github-token` du composite :
+# aucun step ne commente sur la PR, donc le jeton était élargi sans usage. À
+# remettre si un commentaire de plan Terraform est ajouté.
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment: dev
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: ./.github/workflows/terraform-plan-and-apply
+        with:
+          client-id: {% raw %}${{{% endraw %} secrets.AZURE_CLIENT_ID }}
+          client-secret: {% raw %}${{{% endraw %} secrets.AZURE_CLIENT_SECRET }}
+          tenant-id: {% raw %}${{{% endraw %} secrets.AZURE_TENANT_ID }}
+          subscription-id: {% raw %}${{{% endraw %} secrets.AZURE_SUBSCRIPTION_ID }}
+          state-resource-group-name: {% raw %}${{{% endraw %} vars.TF_STATE_RESOURCE_GROUP }}
+          state-storage-account-name: {% raw %}${{{% endraw %} vars.TF_STATE_STORAGE_ACCOUNT }}
+          state-container-name: {% raw %}${{{% endraw %} vars.TF_STATE_CONTAINER }}
+          var-file: envs/dev.tfvars
+{%- endif %}

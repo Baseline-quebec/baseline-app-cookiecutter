@@ -142,10 +142,15 @@ warn_untyped_fields = true
 [tool.pytest.ini_options]  # https://docs.pytest.org/en/latest/reference/reference.html#ini-options-ref
 # Development mode: {{ cookiecutter.development_environment }}
 {%- if cookiecutter.development_environment == "strict" %}
-addopts = "--color=yes --doctest-modules --exitfirst --failed-first --strict-config --strict-markers --typeguard-packages={{ cookiecutter.__project_name_snake_case }} --verbosity=2 --junitxml=reports/pytest.xml"
+# `--failed-first` is deliberately absent. It reorders using .pytest_cache, which
+# is gitignored and not among the paths CI caches (only /tmp/.buildx-cache is), so
+# in CI there is never a prior-failure record to read and the flag does nothing.
+# Add it back on the command line locally, where it does help: `poe test --ff`.
+addopts = "--color=yes --doctest-modules --exitfirst --strict-config --strict-markers --typeguard-packages={{ cookiecutter.__project_name_snake_case }} --verbosity=2 --junitxml=reports/pytest.xml"
 filterwarnings = ["error", "ignore::DeprecationWarning", "ignore::pytest.PytestUnraisableExceptionWarning"{% if cookiecutter.with_fastapi_api|int %}, "ignore::starlette.exceptions.StarletteDeprecationWarning"{% endif %}]
 {%- else %}
-addopts = "--color=yes --doctest-modules --exitfirst --failed-first --verbosity=2 --junitxml=reports/pytest.xml"
+# See the note on --failed-first in the strict branch above: it is inert in CI.
+addopts = "--color=yes --doctest-modules --exitfirst --verbosity=2 --junitxml=reports/pytest.xml"
 {%- endif %}
 {%- if cookiecutter.with_fastapi_api|int %}
 asyncio_mode = "auto"
