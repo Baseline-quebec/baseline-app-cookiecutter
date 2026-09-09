@@ -53,6 +53,30 @@ jobs:
           restore-keys: |
             {% raw %}${{{% endraw %} runner.os }}-docker-
 
+      # mypy runs strict over src/** and tests/** in `poe lint`, and rebuilds its
+      # cache from nothing every run because .mypy_cache is gitignored and
+      # nothing persists it. Measured on a downstream project with this same
+      # configuration (505 files): 171s cold, 14s warm, and still ~9s after a
+      # real source edit.
+      #
+      # The key deliberately does NOT hash the source. mypy's incremental mode
+      # already reanalyses only what changed and its dependents — which is why a
+      # source edit costs 9s and not 171s — so hashing source would miss on
+      # every commit and buy nothing. What invalidates the whole cache is the
+      # dependency set and the mypy version, hence uv.lock plus pyproject.toml,
+      # which carries [tool.mypy]. restore-keys lets a lockfile bump start from
+      # the previous cache and revalidate rather than restart cold.
+      #
+      # python-version is in the key because mypy stores its cache per
+      # interpreter version, and this job is a matrix over more than one.
+      - name: Cache mypy
+        uses: actions/cache@v4
+        with:
+          path: .mypy_cache
+          key: {% raw %}${{{% endraw %} runner.os }}-mypy-{% raw %}${{{% endraw %} matrix.python-version }}-{% raw %}${{{% endraw %} hashFiles('uv.lock', 'pyproject.toml') }}
+          restore-keys: |
+            {% raw %}${{{% endraw %} runner.os }}-mypy-{% raw %}${{{% endraw %} matrix.python-version }}-
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
