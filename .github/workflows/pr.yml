@@ -9,11 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     name: Check PR title
     steps:
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10
 
       - name: Check PR title
         run: |
-          pip install commitizen
-          cz check --message "${{ github.event.pull_request.title }}"
+          uvx --from=commitizen cz check --message "${{ github.event.pull_request.title }}"

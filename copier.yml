@@ -1,0 +1,145 @@
+_subdirectory: template
+_min_copier_version: "9.0.0"
+
+_message_after_copy: |
+  Your project "{{ project_name }}" has been scaffolded in {{ _copier_conf.dst_path }}.
+
+  Next steps:
+    1. cd {{ project_name_kebab_case }}
+    2. git init && git add -A && git commit -m "chore: initial commit"
+    3. Open the project in VS Code and reopen it in the Dev Container.
+
+_message_after_update: |
+  Your project has been updated to the latest template version.
+
+  Resolve any conflicts by inspecting the *.rej files, then delete them.
+
+project_name:
+  type: str
+  help: What is your app's name?
+  default: my-app
+  validator: >-
+    {% if not project_name.strip() %}
+    The project name cannot be empty.
+    {% elif project_name | regex_replace('[A-Za-z0-9 -]', '') %}
+    Only letters, digits, spaces, and hyphens are allowed.
+    {% endif %}
+
+project_name_kebab_case:
+  when: false
+  default: "{{ project_name | lower | regex_replace('[^a-z0-9]+', '-') | trim('-') }}"
+
+project_name_snake_case:
+  when: false
+  default: "{{ project_name | lower | regex_replace('[^a-z0-9]+', '_') | trim('_') }}"
+
+project_description:
+  type: str
+  help: What does your app do in one sentence?
+  default: A Python app that reticulates splines.
+  validator: >-
+    {% if not project_description.strip() %}
+    The project description cannot be empty.
+    {% endif %}
+
+github_org:
+  type: str
+  help: Which GitHub organization or user owns the repository?
+  default: Baseline-quebec
+  validator: >-
+    {% if not github_org.strip() %}
+    The GitHub organization cannot be empty.
+    {% endif %}
+
+project_url:
+  type: str
+  help: What is the URL of your project's repository?
+  default: https://github.com/{{ github_org }}/{{ project_name_kebab_case }}
+  validator: >-
+    {% if not project_url.startswith('https://') %}
+    The project URL must start with https://.
+    {% endif %}
+
+author_name:
+  type: str
+  help: What is the name of your app's primary author?
+  default: John Smith
+  validator: >-
+    {% if not author_name.strip() %}
+    The author name cannot be empty.
+    {% endif %}
+
+author_email:
+  type: str
+  help: What is the email address of your app's primary author?
+  default: john@example.com
+  validator: >-
+    {% if '@' not in author_email %}
+    The author email address must contain an @.
+    {% endif %}
+
+license:
+  type: str
+  help: Which license should your app use?
+  choices:
+    - Proprietary
+    - MIT
+    - Apache-2.0
+  default: Proprietary
+
+python_version:
+  type: str
+  help: Which Python version should your app use?
+  default: "3.12"
+  validator: >-
+    {% if not python_version.replace('.', '').isdigit() or python_version.split('.') | length < 2 %}
+    Invalid Python version, expected a value such as 3.12.
+    {% elif (python_version.split('.')[0] | int, python_version.split('.')[1] | int) < (3, 10) %}
+    Python 3.10 or later is required.
+    {% endif %}
+
+development_environment:
+  type: str
+  help: Do you want a strict or a simple development environment?
+  choices:
+    - strict
+    - simple
+  default: strict
+
+with_conventional_commits:
+  type: bool
+  help: Do you want to follow the Conventional Commits standard (https://www.conventionalcommits.org) for your commit messages?
+  default: "{{ development_environment == 'strict' }}"
+
+with_fastapi_api:
+  type: bool
+  help: Does your app need a FastAPI API?
+  default: true
+
+with_typer_cli:
+  type: bool
+  help: Does your app need a Typer CLI?
+  default: true
+
+with_pytest_bdd:
+  type: bool
+  help: Do you want BDD-style tests with pytest-bdd and Gherkin feature files?
+  default: false
+
+with_sentry:
+  type: bool
+  help: Do you want Sentry error tracking?
+  default: false
+  when: "{{ with_fastapi_api }}"
+
+project_type:
+  when: false
+  default: app
+
+docker_image:
+  when: false
+  default: python:$PYTHON_VERSION-slim
+
+docstring_style:
+  when: false
+  default: Google

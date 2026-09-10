@@ -1,7 +1,7 @@
 {
-    "name": "Baseline app Cookiecutter",
+    "name": "Baseline App Template",
     "image": "mcr.microsoft.com/vscode/devcontainers/python:3.12",
-    "onCreateCommand": "pip install commitizen cruft pre-commit && pre-commit install --install-hooks",
+    "onCreateCommand": "pip install commitizen copier pre-commit && pre-commit install --install-hooks",
     "remoteUser": "vscode",
     "customizations": {
         "vscode": {

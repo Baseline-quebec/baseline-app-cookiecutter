@@ -16,15 +16,15 @@ jobs:
     name: Unit tests — Python ${{ matrix.python-version }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
           cache: pip
 
       - name: Install dependencies
-        run: pip install cookiecutter pytest pyyaml
+        run: pip install copier pytest pyyaml
 
       - name: Run tests
         run: pytest tests/ -v
