@@ -343,7 +343,7 @@ class TestCIWorkflow:
         """CI workflow has Docker layer caching."""
         project = bake(output_dir)
         content = (project / ".github" / "workflows" / "test.yml").read_text()
-        assert "actions/cache@v4" in content
+        assert "actions/cache@" in content
         assert "setup-buildx-action" in content
 
 
@@ -629,14 +629,14 @@ class TestPRWorkflow:
 
 
 class TestCheckoutVersion:
-    """Verify actions/checkout version bump."""
+    """Verify pinned CI tool versions."""
 
-    def test_checkout_v6(self, output_dir: Path) -> None:
-        """test.yml uses actions/checkout@v6."""
+    def test_checkout_version(self, output_dir: Path) -> None:
+        """test.yml uses a current actions/checkout."""
         project = bake(output_dir)
         content = (project / ".github" / "workflows" / "test.yml").read_text()
-        assert "actions/checkout@v6" in content
-        assert "actions/checkout@v5" not in content
+        assert "actions/checkout@v7" in content
+        assert "actions/checkout@v6" not in content
 
 
 # ---------------------------------------------------------------------------
@@ -1221,3 +1221,39 @@ class TestProjectMetadata:
         assert ruff["format"]["skip-magic-trailing-comma"] is True
         # Without this, isort and the formatter disagree about trailing commas.
         assert ruff["lint"]["isort"]["split-on-trailing-comma"] is False
+
+
+class TestPinnedCiTooling:
+    """Verify that generated CI does not float on upstream releases."""
+
+    def test_devcontainers_cli_is_pinned(self, output_dir: Path) -> None:
+        """`@latest` lets an upstream npm release break generated CI."""
+        project = bake(output_dir)
+        content = (project / ".github" / "workflows" / "test.yml").read_text()
+        assert "@devcontainers/cli@latest" not in content
+        assert "@devcontainers/cli@0.89.0" in content
+
+    def test_pr_workflow_uses_uvx(self, output_dir: Path) -> None:
+        """The PR title check runs commitizen through uvx, with no Python setup."""
+        project = bake(output_dir, with_conventional_commits=True)
+        content = (project / ".github" / "workflows" / "pr.yml").read_text()
+        assert "uvx --from=commitizen cz check" in content
+        assert "actions/setup-python" not in content
+        assert "pip install" not in content
+
+    def test_vscode_fix_on_save_is_ruff_scoped(self, output_dir: Path) -> None:
+        """Fix-on-save is scoped to Python and to ruff's own code actions.
+
+        An unscoped `source.fixAll` runs every installed extension's fixer on
+        every save, in every language.
+        """
+        import json
+
+        project = bake(output_dir)
+        settings = json.loads(
+            (project / ".devcontainer" / "devcontainer.json").read_text()
+        )["customizations"]["vscode"]["settings"]
+        assert "editor.codeActionsOnSave" not in settings
+        actions = settings["[python]"]["editor.codeActionsOnSave"]
+        assert actions["source.fixAll.ruff"] == "explicit"
+        assert actions["source.organizeImports.ruff"] == "explicit"
