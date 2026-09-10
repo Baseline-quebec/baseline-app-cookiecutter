@@ -232,30 +232,43 @@ executor.type = "simple"
 [tool.poe.tasks]  # https://github.com/nat-n/poethepoet
 {%- if with_fastapi_api %}
 
+  # `use_exec` replaces the poe process with the server instead of running it as a
+  # child, so the container's PID 1 is the server itself and SIGTERM reaches it.
+  # Without it, `docker stop` never shuts the workers down gracefully and waits
+  # out its timeout on every deploy. It requires `cmd` tasks, not a `shell` task.
+  # `bool(${dev})` rather than `${dev}`: a boolean arg leaves its environment
+  # variable unset when the flag is absent, which is not a valid expression.
   [tool.poe.tasks.api]
   help = "Serve the REST API"
-  shell = """
-    if [ $dev ]
-    then {
-      uvicorn \
-        --host $host \
-        --port $port \
-        --reload \
+  control.expr = "bool(${dev})"
+
+    [[tool.poe.tasks.api.switch]]
+    case = "True"
+    cmd = """
+      uvicorn
+        --host $host
+        --port $port
+        --reload
         {{ project_name_snake_case }}.api:app
-    } else {
-      gunicorn \
-        --access-logfile - \
-        --bind $host:$port \
-        --graceful-timeout 10 \
-        --keep-alive 10 \
-        --log-file - \
-        --timeout 30 \
-        --worker-class uvicorn.workers.UvicornWorker \
-        --worker-tmp-dir /dev/shm \
-        --workers 2 \
+      """
+    use_exec = true
+
+    [[tool.poe.tasks.api.switch]]
+    case = "False"
+    cmd = """
+      gunicorn
+        --access-logfile -
+        --bind $host:$port
+        --graceful-timeout 10
+        --keep-alive 10
+        --log-file -
+        --timeout 30
+        --worker-class uvicorn.workers.UvicornWorker
+        --worker-tmp-dir /dev/shm
+        --workers 2
         {{ project_name_snake_case }}.api:app
-    } fi
-    """
+      """
+    use_exec = true
 
     [[tool.poe.tasks.api.args]]
     help = "Bind socket to this host (default: 0.0.0.0)"

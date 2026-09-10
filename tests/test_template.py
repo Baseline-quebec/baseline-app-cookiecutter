@@ -430,6 +430,29 @@ class TestPoeTasks:
         assert "copier update" in content
         assert "cruft" not in content
 
+    def test_poe_api_task_uses_exec(self, output_dir: Path) -> None:
+        """The api task execs the server so it receives SIGTERM as PID 1.
+
+        The container entrypoint is `poe api`, so without `use_exec` poe stays
+        PID 1 and the server never sees `docker stop`'s SIGTERM, which costs a
+        full stop timeout and skips graceful shutdown on every deploy.
+        """
+        import tomllib
+
+        project = bake(output_dir, with_fastapi_api=True)
+        parsed = tomllib.loads((project / "pyproject.toml").read_bytes().decode())
+        api = parsed["tool"]["poe"]["tasks"]["api"]
+        # A `shell` task cannot exec; the switch must be `cmd` tasks.
+        assert "shell" not in api
+        assert api["control"]["expr"] == "bool(${dev})"
+        assert len(api["switch"]) == 2
+        assert all(case["use_exec"] for case in api["switch"])
+        dev, prod = (case for case in api["switch"] if case["case"] == "True"), (
+            case for case in api["switch"] if case["case"] == "False"
+        )
+        assert "uvicorn" in next(dev)["cmd"]
+        assert "gunicorn" in next(prod)["cmd"]
+
     def test_poe_lint_task(self, output_dir: Path) -> None:
         """poe lint task is present."""
         project = bake(output_dir)
