@@ -53,7 +53,9 @@ From inside the generated project:
 uvx copier update
 ```
 
-Copier reads `.copier-answers.yml` to know which template version the project came from, re-asks nothing, and applies only the template's changes. If any file update failed, resolve the conflicts by inspecting the `.rej` files, then delete them.
+Copier reads `.copier-answers.yml` to know which template version the project came from, re-asks nothing, and applies only the template's changes.
+
+Where your edits and the template's overlap, Copier performs a three-way merge and leaves **inline conflict markers** (`<<<<<<< before updating`). Find them with `git status` and resolve them like any merge conflict. Pass `--conflict=rej` instead if you prefer `.rej` files alongside the originals.
 
 Generated projects also expose this as `poe update`.
 

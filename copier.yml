@@ -12,7 +12,8 @@ _message_after_copy: |
 _message_after_update: |
   Your project has been updated to the latest template version.
 
-  Resolve any conflicts by inspecting the *.rej files, then delete them.
+  Where your edits and the template's overlap, Copier leaves inline conflict
+  markers. Run `git status` to find them and `git diff` to resolve them.
 
 project_name:
   type: str
