@@ -1126,3 +1126,58 @@ class TestCrossPlatform:
         project = bake(output_dir)
         content = (project / "Dockerfile").read_text()
         assert "git config --system --add safe.directory" in content
+
+
+class TestDocsWorkflow:
+    """Verify the GitHub Pages documentation workflow."""
+
+    def test_docs_workflow_exists(self, output_dir: Path) -> None:
+        """The template ships a workflow that publishes the MkDocs site."""
+        project = bake(output_dir)
+        assert (project / ".github" / "workflows" / "docs.yml").is_file()
+
+    def test_docs_workflow_valid_yaml(self, output_dir: Path) -> None:
+        """docs.yml is valid YAML with the permissions Pages needs."""
+        import yaml
+
+        project = bake(output_dir)
+        parsed = yaml.safe_load(
+            (project / ".github" / "workflows" / "docs.yml").read_text()
+        )
+        assert parsed["permissions"]["pages"] == "write"
+        assert parsed["permissions"]["id-token"] == "write"
+        steps = parsed["jobs"]["build-and-deploy"]["steps"]
+        assert any("mkdocs build" in step.get("run", "") for step in steps)
+        assert any("deploy-pages" in step.get("uses", "") for step in steps)
+
+    def test_docs_workflow_keeps_github_expressions(self, output_dir: Path) -> None:
+        """The page_url expression survives templating instead of rendering away."""
+        project = bake(output_dir)
+        content = (project / ".github" / "workflows" / "docs.yml").read_text()
+        assert "${{ steps.deployment.outputs.page_url }}" in content
+
+    def test_mkdocs_declares_repo_and_docs_url(self, output_dir: Path) -> None:
+        """mkdocs.yml points at the repository and its published site."""
+        import yaml
+
+        project = bake(output_dir, github_org="Baseline-quebec")
+        parsed = yaml.safe_load((project / "mkdocs.yml").read_text())
+        assert parsed["repo_url"] == "https://github.com/Baseline-quebec/test-project"
+        assert parsed["repo_name"] == "Baseline-quebec/test-project"
+        assert parsed["site_url"] == "https://baseline-quebec.github.io/test-project"
+        assert "pymdownx.superfences" in parsed["markdown_extensions"]
+
+    def test_mkdocs_strict_only_in_strict_mode(self, output_dir: Path) -> None:
+        """Strict mode fails the docs build on warnings; simple mode does not."""
+        import yaml
+
+        strict = yaml.safe_load(
+            (bake(output_dir / "s", development_environment="strict") / "mkdocs.yml").read_text()
+        )
+        simple = yaml.safe_load(
+            (bake(output_dir / "p", development_environment="simple") / "mkdocs.yml").read_text()
+        )
+        assert strict["strict"] is True
+        # Unlisted ADRs must not fail the build.
+        assert strict["validation"]["omitted_files"] == "info"
+        assert "strict" not in simple
