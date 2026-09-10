@@ -1086,3 +1086,43 @@ class TestLintCiConfig:
         project = bake(output_dir, with_fastapi_api=True)
         for line in (project / "src" / "test_project" / "api.py").read_text().splitlines():
             assert line == line.rstrip(), f"trailing whitespace: {line!r}"
+
+
+# ---------------------------------------------------------------------------
+# Upstream sync: build output and cross-platform hygiene
+# ---------------------------------------------------------------------------
+
+
+class TestIgnoreFiles:
+    """Verify that generated build output is ignored."""
+
+    def test_gitignore_ignores_mkdocs_site(self, output_dir: Path) -> None:
+        """`mkdocs build` writes site/, which must not be committed."""
+        project = bake(output_dir)
+        assert "site/" in (project / ".gitignore").read_text().splitlines()
+
+    def test_gitignore_ignores_egg_info(self, output_dir: Path) -> None:
+        """An editable install writes *.egg-info/, which must not be committed."""
+        project = bake(output_dir)
+        assert "*.egg-info/" in (project / ".gitignore").read_text().splitlines()
+
+    def test_dockerignore_excludes_venv(self, output_dir: Path) -> None:
+        """A local virtualenv must stay out of the Docker build context."""
+        project = bake(output_dir)
+        assert ".venv/" in (project / ".dockerignore").read_text().splitlines()
+
+
+class TestCrossPlatform:
+    """Verify cross-platform guards."""
+
+    def test_pre_commit_checks_illegal_windows_names(self, output_dir: Path) -> None:
+        """Filenames that are illegal on Windows are rejected before commit."""
+        project = bake(output_dir)
+        content = (project / ".pre-commit-config.yaml").read_text()
+        assert "check-illegal-windows-names" in content
+
+    def test_dockerfile_appends_safe_directory(self, output_dir: Path) -> None:
+        """`--add` appends to safe.directory instead of replacing it."""
+        project = bake(output_dir)
+        content = (project / "Dockerfile").read_text()
+        assert "git config --system --add safe.directory" in content
