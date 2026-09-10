@@ -5,9 +5,7 @@ combinations of answers, and that conditional file paths include and exclude
 the right files.
 """
 
-import os
 import re
-import subprocess
 import warnings
 from pathlib import Path
 from typing import Any
@@ -80,7 +78,7 @@ class TestBasicGeneration:
 
     def test_project_name_slugified(self, output_dir: Path) -> None:
         """Project name is correctly slugified."""
-        project = bake(output_dir, project_name="My Cool App")
+        bake(output_dir, project_name="My Cool App")
         expected = output_dir / "my-cool-app"
         assert expected.is_dir()
         assert (expected / "src" / "my_cool_app" / "__init__.py").is_file()
@@ -526,7 +524,7 @@ class TestCombinations:
         assert "tool" in parsed
         assert "project" in parsed
         assert parsed["project"]["name"] == "test-project"
-        assert parsed["build-system"]["build-backend"] == "hatchling.build"
+        assert parsed["build-system"]["build-backend"] == "uv_build"
         assert "uv" in parsed["tool"]
         assert "poetry" not in parsed["tool"]
 
@@ -846,25 +844,28 @@ class TestClaudeCodeConfig:
 class TestUvMigration:
     """Verify the project is a well-formed uv project, not a Poetry one."""
 
-    def test_build_backend_is_hatchling(self, output_dir: Path) -> None:
-        """Build backend is hatchling, not poetry-core."""
+    def test_build_backend_is_uv_build(self, output_dir: Path) -> None:
+        """Build backend is uv_build, not hatchling or poetry-core."""
         import tomllib
 
         project = bake(output_dir)
         parsed = tomllib.loads((project / "pyproject.toml").read_bytes().decode())
-        assert parsed["build-system"]["build-backend"] == "hatchling.build"
+        assert parsed["build-system"]["build-backend"] == "uv_build"
         requires = " ".join(parsed["build-system"]["requires"])
-        assert "hatchling" in requires
+        assert "uv_build" in requires
+        assert "hatchling" not in requires
         assert "poetry" not in requires
 
-    def test_wheel_targets_src_package(self, output_dir: Path) -> None:
-        """Hatchling wheel target points at the src package."""
+    def test_build_backend_targets_src_package(self, output_dir: Path) -> None:
+        """The uv build backend points at the src package."""
         import tomllib
 
         project = bake(output_dir)
         parsed = tomllib.loads((project / "pyproject.toml").read_bytes().decode())
-        packages = parsed["tool"]["hatch"]["build"]["targets"]["wheel"]["packages"]
-        assert packages == ["src/test_project"]
+        backend = parsed["tool"]["uv"]["build-backend"]
+        assert backend["module-name"] == "test_project"
+        assert backend["module-root"] == "src"
+        assert "hatch" not in parsed["tool"]
 
     def test_no_tool_poetry_table(self, output_dir: Path) -> None:
         """No [tool.poetry] table remains anywhere in pyproject.toml."""

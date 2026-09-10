@@ -1,6 +1,6 @@
-[build-system]  # https://hatch.pypa.io/latest/config/build/
-requires = ["hatchling>=1.27.0"]
-build-backend = "hatchling.build"
+[build-system]  # https://docs.astral.sh/uv/concepts/build-backend/
+requires = ["uv_build>=0.12.13,<0.13.0"]
+build-backend = "uv_build"
 
 [project]  # https://packaging.python.org/en/latest/specifications/pyproject-toml/
 name = "{{ project_name_kebab_case }}"
@@ -83,8 +83,9 @@ dev = [
 [tool.uv]  # https://docs.astral.sh/uv/reference/settings/
 default-groups = ["test", "dev"]
 
-[tool.hatch.build.targets.wheel]  # https://hatch.pypa.io/latest/config/build/#build-targets
-packages = ["src/{{ project_name_snake_case }}"]
+[tool.uv.build-backend]  # https://docs.astral.sh/uv/reference/settings/#build-backend
+module-name = "{{ project_name_snake_case }}"
+module-root = "src"
 
 [tool.coverage.report]  # https://coverage.readthedocs.io/en/latest/config.html#report
 {%- if development_environment == "strict" %}
