@@ -31,8 +31,13 @@ dependencies = [
 {%- endif %}
 ]
 
-[project.urls]  # https://packaging.python.org/en/latest/specifications/well-known-project-urls/
-Repository = "{{ project_url }}"
+[project.urls]  # https://packaging.python.org/en/latest/specifications/well-known-project-urls/#well-known-labels
+homepage = "{{ project_url }}"
+source = "{{ project_url }}"
+changelog = "{{ project_url.rstrip('/') }}/blob/main/CHANGELOG.md"
+releasenotes = "{{ project_url.rstrip('/') }}/releases"
+documentation = "{{ documentation_url }}"
+issues = "{{ project_url.rstrip('/') }}/issues"
 {%- if with_typer_cli %}
 
 [project.scripts]  # https://packaging.python.org/en/latest/specifications/pyproject-toml/#entry-points
@@ -44,13 +49,13 @@ Repository = "{{ project_url }}"
 bump_message = "bump(release): v$current_version → v$new_version"
 tag_format = "v$version"
 update_changelog_on_bump = true
-version_provider = "pep621"
+version_provider = "uv"
 {%- endif %}
 
 [dependency-groups]  # https://docs.astral.sh/uv/concepts/projects/dependencies/#dependency-groups
 test = [
 {%- if with_conventional_commits %}
-  "commitizen>=4.1.0",
+  "commitizen>=4.18.0",
 {%- endif %}
   "coverage[toml]>=7.6.0",
   "detect-secrets>=1.5.0",
@@ -164,6 +169,10 @@ preview = true
 src = ["src", "tests"]
 target-version = "py{{ python_version.split('.')[:2]|join }}"
 
+[tool.ruff.format]
+docstring-code-format = true
+skip-magic-trailing-comma = true
+
 [tool.ruff.lint]
 {%- if development_environment == "strict" %}
 select = ["ALL"]
@@ -206,6 +215,7 @@ ignore-variadic-names = true  # Allow unused *args and **kwargs in function sign
 
 [tool.ruff.lint.isort]
 lines-after-imports = 2
+split-on-trailing-comma = false  # Pairs with skip-magic-trailing-comma
 
 [tool.ruff.lint.pycodestyle]
 max-doc-length = 99

@@ -945,13 +945,16 @@ class TestUvMigration:
         parsed = tomllib.loads((project / "pyproject.toml").read_bytes().decode())
         assert parsed["tool"]["poe"]["executor"]["type"] == "simple"
 
-    def test_commitizen_version_provider_pep621(self, output_dir: Path) -> None:
-        """Commitizen reads the version from PEP 621 metadata, not from Poetry."""
+    def test_commitizen_version_provider_is_not_poetry(self, output_dir: Path) -> None:
+        """Commitizen does not read the version from Poetry.
+
+        See TestProjectMetadata for the provider actually in use.
+        """
         import tomllib
 
         project = bake(output_dir, development_environment="strict")
         parsed = tomllib.loads((project / "pyproject.toml").read_bytes().decode())
-        assert parsed["tool"]["commitizen"]["version_provider"] == "pep621"
+        assert parsed["tool"]["commitizen"]["version_provider"] != "poetry"
 
     def test_typer_script_entry_point(self, output_dir: Path) -> None:
         """The CLI entry point is declared under [project.scripts]."""
@@ -1181,3 +1184,40 @@ class TestDocsWorkflow:
         # Unlisted ADRs must not fail the build.
         assert strict["validation"]["omitted_files"] == "info"
         assert "strict" not in simple
+
+
+class TestProjectMetadata:
+    """Verify [project.urls] and release tooling configuration."""
+
+    def test_well_known_project_urls(self, output_dir: Path) -> None:
+        """All well-known project URL labels are populated."""
+        import tomllib
+
+        project = bake(output_dir, github_org="Baseline-quebec")
+        urls = tomllib.loads((project / "pyproject.toml").read_bytes().decode())["project"]["urls"]
+        base = "https://github.com/Baseline-quebec/test-project"
+        assert urls["homepage"] == base
+        assert urls["source"] == base
+        assert urls["changelog"] == f"{base}/blob/main/CHANGELOG.md"
+        assert urls["releasenotes"] == f"{base}/releases"
+        assert urls["issues"] == f"{base}/issues"
+        assert urls["documentation"] == "https://baseline-quebec.github.io/test-project"
+
+    def test_commitizen_version_provider_is_uv(self, output_dir: Path) -> None:
+        """Commitizen bumps through uv, so uv.lock stays in step with the version."""
+        import tomllib
+
+        project = bake(output_dir, with_conventional_commits=True)
+        parsed = tomllib.loads((project / "pyproject.toml").read_bytes().decode())
+        assert parsed["tool"]["commitizen"]["version_provider"] == "uv"
+
+    def test_ruff_format_options(self, output_dir: Path) -> None:
+        """The formatter formats docstring code and ignores magic trailing commas."""
+        import tomllib
+
+        project = bake(output_dir)
+        ruff = tomllib.loads((project / "pyproject.toml").read_bytes().decode())["tool"]["ruff"]
+        assert ruff["format"]["docstring-code-format"] is True
+        assert ruff["format"]["skip-magic-trailing-comma"] is True
+        # Without this, isort and the formatter disagree about trailing commas.
+        assert ruff["lint"]["isort"]["split-on-trailing-comma"] is False

@@ -17,10 +17,7 @@ def api_client() -> TestClient:
     return TestClient(app)
 
 
-@when(
-    parsers.cfparse("I request GET {path}"),
-    target_fixture="response",
-)
+@when(parsers.cfparse("I request GET {path}"), target_fixture="response")
 def request_get(client: TestClient, path: str) -> Response:
     """Send a GET request to the given path."""
     return client.get(path)

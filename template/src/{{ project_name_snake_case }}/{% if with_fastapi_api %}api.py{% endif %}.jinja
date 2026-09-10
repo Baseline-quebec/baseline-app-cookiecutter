@@ -85,20 +85,14 @@ app.add_middleware(RequestLoggingMiddleware)
 def http_exception_handler(request: Request, exc: StarletteHTTPException) -> JSONResponse:  # noqa: ARG001
     """Return a structured JSON response for HTTP exceptions."""
     logger.warning("HTTP {status}: {detail}", status=exc.status_code, detail=exc.detail)
-    return JSONResponse(
-        status_code=exc.status_code,
-        content={"detail": exc.detail},
-    )
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
 
 
 @app.exception_handler(Exception)
 def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:  # noqa: ARG001
     """Return a 500 JSON response for unhandled exceptions."""
     logger.exception("Unhandled exception: {exc}", exc=exc)
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error"},
-    )
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
 # --- Routes ----------------------------------------------------------------------
