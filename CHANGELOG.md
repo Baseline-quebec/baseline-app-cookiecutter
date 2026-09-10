@@ -7,8 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed — upstream sync (breaking)
+
+- **Template engine is now [Copier](https://copier.readthedocs.io/) instead of
+  Cookiecutter.** Scaffold with `uvx copier copy gh:Baseline-quebec/baseline-app-cookiecutter <dir>`
+  and update with `uvx copier update`. Template sources moved to `template/`
+  with a `.jinja` suffix; `cookiecutter.json` became `copier.yml`; the
+  generation hooks became per-question validators and conditional file paths.
+  Projects generated with Cookiecutter need a one-time migration from
+  `.cruft.json` to `.copier-answers.yml` — see the README.
+- Copier resolves a template to its **newest git tag**, so template releases
+  must now be tagged (`cz bump`) to reach generated projects.
+- **Build backend is now `uv_build` instead of hatchling.**
+- Commitizen bumps through the `uv` version provider, keeping `uv.lock` in step
+  with the version.
+- The ruff formatter now formats docstring code and ignores magic trailing
+  commas; the FastAPI and BDD stubs are reflowed to match.
+- Generated CI checks PR titles with `uvx --from=commitizen cz check`, pins
+  `@devcontainers/cli`, and uses current action majors.
+- VS Code fix-on-save is scoped to `[python]` and to ruff's own code actions.
+
 ### Added
 
+- GitHub Pages workflow (`docs.yml`) that publishes the MkDocs site, plus the
+  `repo_url`, `repo_name`, `site_url` and pymdownx config it needs
+- MkDocs `strict` mode and link validation in strict development environments
+- Well-known `[project.urls]` labels (homepage, source, changelog,
+  releasenotes, documentation, issues)
+- `check-illegal-windows-names` pre-commit hook
 - `CLAUDE.md` template for AI-assisted development in generated projects
 - `pull_request_template.md` for the cookiecutter repo itself
 - `CODEOWNERS` file (@davebulaval, @dpothier)
@@ -36,6 +62,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Fixed
 
+- `site/` and `*.egg-info/` were never git-ignored, so MkDocs and editable
+  install output landed in the first commit of every generated project
+- The API server never received SIGTERM: the container entrypoint ran the
+  server behind a shell, so `docker stop` skipped graceful shutdown and waited
+  out its timeout on every deploy
+- Broken relative link to `decisions/` in the generated `docs/index.md`
+- A local `.venv/` was copied into the Docker build context
 - ruff lint errors in generated code (FURB171, PLC0415, PLR2004, PLR6201, B007, PERF102)
 - codespell false positives (Jupyter) and real typos (developpement, developpers, formater)
 - Jinja whitespace in cli.py imports causing ruff format failure
