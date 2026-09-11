@@ -7,11 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-Nothing here has been released yet. Entries are split into the current change
-set — itself grouped by whether it came from upstream or from us — and the
-Baseline work that was already sitting unreleased before it.
+Grouped by origin: what we took from upstream in the Copier catch-up, and
+the decisions we made ourselves alongside it.
 
-### Current — upstream sync
+### Upstream sync
 
 Taken from [superlinear-ai/substrate](https://github.com/superlinear-ai/substrate),
 catching up from our last merge base (substrate#240) to upstream v2.1.0.
@@ -62,7 +61,7 @@ catching up from our last merge base (substrate#240) to upstream v2.1.0.
   docker-compose rewrites, and dropping the `package` project type or the
   GitLab CI provider.
 
-### Current — Baseline
+### Baseline
 
 Our own decisions in this change set, which in places deliberately diverge from
 upstream.
@@ -111,12 +110,12 @@ upstream.
 - Broken relative link to `decisions/` in the generated `docs/index.md`, before
   that file was removed with the rest of the docs stack.
 
-### Earlier, still unreleased
+## [1.0.0] - 2026-09-11
 
-Baseline work that predates the change set above. A few entries are superseded
-by it — notably MkDocs, the Cruft link check, and the CI matrix.
+First tagged release, and the last of the Cookiecutter era: projects
+scaffolded from this tag use `cruft`/`cookiecutter` and a `.cruft.json`.
 
-#### Added
+### Added
 
 - `CLAUDE.md` template for AI-assisted development in generated projects
 - `pull_request_template.md` for the cookiecutter repo itself
@@ -134,16 +133,16 @@ by it — notably MkDocs, the Cruft link check, and the CI matrix.
 - `pre-commit-hooks` (check-yaml, check-toml, end-of-file-fixer, trailing-whitespace)
 - 71 unit tests for template generation (up from 0)
 
-#### Changed
+### Changed
 
 - Conditionalized generated README sections (API, CLI, Docker) with Jinja
 - Rewrote root README with CI badges, project structure, and developer guide
-- Rewrote generated README: concise and dynamic
+- Rewrote generated README: concise, dynamic, references MkDocs
 - Modernized integration workflow: checkout v6, pip cache, renamed to "Integration"
 - Fixed generated CONTRIBUTING.md typos and added codespell to tools list
 - Fixed `.env.sample` reference to `.env.example` in generated README
 
-#### Fixed
+### Fixed
 
 - ruff lint errors in generated code (FURB171, PLC0415, PLR2004, PLR6201, B007, PERF102)
 - codespell false positives (Jupyter) and real typos (developpement, developpers, formater)
