@@ -1,4 +1,4 @@
-[![CI](https://github.com/Baseline-quebec/baseline-app-cookiecutter/actions/workflows/ci.yml/badge.svg)](https://github.com/Baseline-quebec/baseline-app-cookiecutter/actions/workflows/ci.yml) [![Integration](https://github.com/Baseline-quebec/baseline-app-cookiecutter/actions/workflows/test.yml/badge.svg)](https://github.com/Baseline-quebec/baseline-app-cookiecutter/actions/workflows/test.yml) [![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/Baseline-quebec/baseline-app-cookiecutter) [![Open in GitHub Codespaces](https://img.shields.io/static/v1?label=GitHub%20Codespaces&message=Open&color=blue&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=Baseline-quebec/baseline-app-cookiecutter)
+[![CI](https://github.com/Baseline-quebec/baseline-app-template/actions/workflows/ci.yml/badge.svg)](https://github.com/Baseline-quebec/baseline-app-template/actions/workflows/ci.yml) [![Integration](https://github.com/Baseline-quebec/baseline-app-template/actions/workflows/test.yml/badge.svg)](https://github.com/Baseline-quebec/baseline-app-template/actions/workflows/test.yml) [![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/Baseline-quebec/baseline-app-template) [![Open in GitHub Codespaces](https://img.shields.io/static/v1?label=GitHub%20Codespaces&message=Open&color=blue&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=Baseline-quebec/baseline-app-template)
 
 # Baseline App Template
 
@@ -36,7 +36,7 @@ A modern [Copier](https://copier.readthedocs.io/) template for scaffolding Pytho
 2. Run the following command in the **parent directory** of the cloned repository:
 
    ```sh
-   uvx copier copy gh:Baseline-quebec/baseline-app-cookiecutter my-project
+   uvx copier copy gh:Baseline-quebec/baseline-app-template my-project
    ```
 
    Copier writes the project into the directory you name, so pass the cloned
@@ -67,7 +67,7 @@ Projects scaffolded before this template moved to Copier have a `.cruft.json` in
    ```yaml
    # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY.
    _commit: v0.1.0
-   _src_path: gh:Baseline-quebec/baseline-app-cookiecutter
+   _src_path: gh:Baseline-quebec/baseline-app-template
    ```
 
    Set `_commit` to the template tag the project was last updated from, and copy the remaining answers out of `.cruft.json`'s `context.cookiecutter` object (dropping the keys that start with `_`).
@@ -101,7 +101,7 @@ This repository has three CI workflows:
 ### Project structure
 
 ```
-baseline-app-cookiecutter/
+baseline-app-template/
 ├── copier.yml                         # Template questions and computed values
 ├── pyproject.toml                     # This repo's own tooling (uv, ruff, pytest)
 ├── uv.lock
