@@ -25,9 +25,11 @@ package = false
 # publishes a template change to generated projects.
 bump_message = "bump(release): v$current_version → v$new_version"
 tag_format = "v$version"
-# CHANGELOG.md is maintained by hand: it groups entries by whether they came
-# from upstream or from Baseline, which cannot be derived from commit messages.
-# Generating it would also replay the whole inherited substrate history.
+# CHANGELOG.md is maintained by hand: entries are grouped by whether they came
+# from upstream or from Baseline, which commit messages cannot express.
+# Commitizen also cannot read Keep a Changelog headings, so it finds no point to
+# stop at and rewrites the file from the first commit — replaying the inherited
+# substrate history — even on an incremental run.
 update_changelog_on_bump = false
 version_provider = "uv"
 
