@@ -115,7 +115,11 @@ upstream.
 First tagged release, and the last of the Cookiecutter era: projects
 scaffolded from this tag use `cruft`/`cookiecutter` and a `.cruft.json`.
 
-### Added
+Nothing before this was tagged, so it also carries the earlier sprint work.
+
+### Template hardening
+
+#### Added
 
 - `CLAUDE.md` template for AI-assisted development in generated projects
 - `pull_request_template.md` for the cookiecutter repo itself
@@ -133,7 +137,7 @@ scaffolded from this tag use `cruft`/`cookiecutter` and a `.cruft.json`.
 - `pre-commit-hooks` (check-yaml, check-toml, end-of-file-fixer, trailing-whitespace)
 - 71 unit tests for template generation (up from 0)
 
-### Changed
+#### Changed
 
 - Conditionalized generated README sections (API, CLI, Docker) with Jinja
 - Rewrote root README with CI badges, project structure, and developer guide
@@ -142,7 +146,7 @@ scaffolded from this tag use `cruft`/`cookiecutter` and a `.cruft.json`.
 - Fixed generated CONTRIBUTING.md typos and added codespell to tools list
 - Fixed `.env.sample` reference to `.env.example` in generated README
 
-### Fixed
+#### Fixed
 
 - ruff lint errors in generated code (FURB171, PLC0415, PLR2004, PLR6201, B007, PERF102)
 - codespell false positives (Jupyter) and real typos (developpement, developpers, formater)
@@ -150,11 +154,9 @@ scaffolded from this tag use `cruft`/`cookiecutter` and a `.cruft.json`.
 - Unused `import sys` and stale noqa comments (S310, BLE001) in cli.py
 - Coverage failure in minimal config (added settings test)
 
----
+### Sprint 2 — Cookiecutter enhancements
 
-## Sprint 2 — Cookiecutter Enhancements
-
-### Added
+#### Added
 
 - pydantic-settings integration (replaces python-decouple) with `.env.example`
 - Pydantic models (`models.py`) and service layer (`services.py`) stubs
@@ -169,7 +171,7 @@ scaffolded from this tag use `cruft`/`cookiecutter` and a `.cruft.json`.
 - Docker `HEALTHCHECK` instruction (conditional on FastAPI)
 - pytest-asyncio support (conditional on FastAPI)
 
-### Changed
+#### Changed
 
 - Replaced python-decouple with pydantic-settings
 - Rewrote `api.py` with dependency injection, structured error handling, and logging
@@ -178,7 +180,7 @@ scaffolded from this tag use `cruft`/`cookiecutter` and a `.cruft.json`.
 - Renamed `.env_sample` to `.env.example`
 - Removed Teamwork integration (workflow + PR template link)
 
-### Fixed
+#### Fixed
 
 - 5 P0 bugs that broke template generation
 - pytest-bdd feature file paths
