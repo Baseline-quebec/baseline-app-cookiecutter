@@ -1,0 +1,333 @@
+[build-system]  # https://docs.astral.sh/uv/concepts/build-backend/
+requires = ["uv_build>=0.12.13,<0.13.0"]
+build-backend = "uv_build"
+
+[project]  # https://packaging.python.org/en/latest/specifications/pyproject-toml/
+name = "{{ project_name_kebab_case }}"
+version = "0.0.0"
+description = "{{ project_description }}"
+authors = [{ name = "{{ author_name }}", email = "{{ author_email }}" }]
+readme = "README.md"
+license = "{% if license == 'Proprietary' %}LicenseRef-Proprietary{% else %}{{ license }}{% endif %}"
+requires-python = ">={{ python_version }},<4.0"
+dependencies = [
+{%- if with_fastapi_api %}
+  "fastapi[all]>=0.115.0",
+  "loguru>=0.7.3",
+  "gunicorn>=23.0.0",
+{%- endif %}
+{%- if project_type == "app" %}
+  "poethepoet>=0.32.0",
+{%- endif %}
+  "pydantic-settings>=2.7.0",
+{%- if with_sentry %}
+  "sentry-sdk[fastapi]>=2.19.0",
+{%- endif %}
+{%- if with_typer_cli %}
+  "typer>=0.15.0",
+{%- endif %}
+{%- if with_fastapi_api %}
+  "uvicorn[standard]>=0.34.0",
+{%- endif %}
+]
+
+[project.urls]  # https://packaging.python.org/en/latest/specifications/well-known-project-urls/#well-known-labels
+homepage = "{{ project_url }}"
+source = "{{ project_url }}"
+changelog = "{{ project_url.rstrip('/') }}/blob/main/CHANGELOG.md"
+releasenotes = "{{ project_url.rstrip('/') }}/releases"
+issues = "{{ project_url.rstrip('/') }}/issues"
+{%- if with_typer_cli %}
+
+[project.scripts]  # https://packaging.python.org/en/latest/specifications/pyproject-toml/#entry-points
+{{ project_name_kebab_case }} = "{{ project_name_snake_case }}.cli:app"
+{%- endif %}
+{%- if with_conventional_commits %}
+
+[tool.commitizen]  # https://commitizen-tools.github.io/commitizen/config/
+bump_message = "bump(release): v$current_version → v$new_version"
+tag_format = "v$version"
+update_changelog_on_bump = true
+version_provider = "uv"
+{%- endif %}
+
+[dependency-groups]  # https://docs.astral.sh/uv/concepts/projects/dependencies/#dependency-groups
+test = [
+{%- if with_conventional_commits %}
+  "commitizen>=4.18.0",
+{%- endif %}
+  "coverage[toml]>=7.6.0",
+  "detect-secrets>=1.5.0",
+  "mypy>=1.14.0",
+  "pre-commit>=4.0.0",
+  "pytest>=8.3.0",
+{%- if with_pytest_bdd %}
+  "pytest-bdd>=8.1.0",
+{%- endif %}
+  "pytest-mock>=3.14.0",
+  "pytest-xdist>=3.5.0",
+{%- if with_fastapi_api %}
+  "pytest-asyncio>=0.25.0",
+{%- endif %}
+  "httpx>=0.28.0",
+  "codespell>=2.4.0",
+  "ruff>=0.11.0",
+{%- if development_environment == "strict" %}
+  "safety>=3.2.0",
+  "shellcheck-py>=0.10.0.1",
+  "typeguard>=4.4.0",
+{%- endif %}
+]
+dev = [
+  "ipykernel>=6.29.4",
+  "ipywidgets>=8.1.2",
+]
+
+[tool.uv]  # https://docs.astral.sh/uv/reference/settings/
+default-groups = ["test", "dev"]
+
+[tool.uv.build-backend]  # https://docs.astral.sh/uv/reference/settings/#build-backend
+module-name = "{{ project_name_snake_case }}"
+module-root = "src"
+
+[tool.coverage.report]  # https://coverage.readthedocs.io/en/latest/config.html#report
+{%- if development_environment == "strict" %}
+fail_under = 50
+{%- endif %}
+precision = 1
+show_missing = true
+skip_covered = true
+
+[tool.coverage.run]  # https://coverage.readthedocs.io/en/latest/config.html#run
+branch = true
+command_line = "--module pytest"
+data_file = "reports/.coverage"
+source = ["src"]
+
+[tool.coverage.html]  # https://coverage.readthedocs.io/en/latest/cmd.html#html-reporting-coverage-html
+directory = "reports/htmlcov"
+
+[tool.coverage.xml]  # https://coverage.readthedocs.io/en/latest/cmd.html#cmd-xml
+output = "reports/coverage.xml"
+
+[tool.mypy]  # https://mypy.readthedocs.io/en/latest/config_file.html
+junit_xml = "reports/mypy.xml"
+plugins = "pydantic.mypy"
+{%- if development_environment == "strict" %}
+strict = true
+disallow_subclassing_any = false
+disallow_untyped_decorators = false
+{%- endif %}
+ignore_missing_imports = true
+pretty = true
+show_column_numbers = true
+show_error_codes = true
+show_error_context = true
+warn_unreachable = true
+files = ["src/**/*.py", "tests/**/*.py"]
+
+[[tool.mypy.overrides]]
+module = "tests.*"
+disable_error_code = [
+  "method-assign", # Necessary when mocking
+  "attr-defined",  # Mocked attributes are dynamically defined
+]
+
+{%- if development_environment == "strict" %}
+
+[tool.pydantic-mypy]  # https://pydantic-docs.helpmanual.io/mypy_plugin/#configuring-the-plugin
+init_forbid_extra = true
+init_typed = true
+warn_required_dynamic_aliases = true
+warn_untyped_fields = true
+{%- endif %}
+
+[tool.pytest.ini_options]  # https://docs.pytest.org/en/latest/reference/reference.html#ini-options-ref
+# Development mode: {{ development_environment }}
+{%- if development_environment == "strict" %}
+addopts = "--color=yes --doctest-modules --exitfirst --failed-first --strict-config --strict-markers --typeguard-packages={{ project_name_snake_case }} --verbosity=2 --junitxml=reports/pytest.xml"
+filterwarnings = ["error", "ignore::DeprecationWarning", "ignore::pytest.PytestUnraisableExceptionWarning"{% if with_fastapi_api %}, "ignore::starlette.exceptions.StarletteDeprecationWarning"{% endif %}]
+{%- else %}
+addopts = "--color=yes --doctest-modules --exitfirst --failed-first --verbosity=2 --junitxml=reports/pytest.xml"
+{%- endif %}
+{%- if with_fastapi_api %}
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+{%- endif %}
+testpaths = ["tests"]
+xfail_strict = true
+{%- if with_pytest_bdd %}
+bdd_features_base_dir = "tests/features/"
+{%- endif %}
+
+[tool.ruff]  # https://docs.astral.sh/ruff/
+fix = true
+line-length = 99
+preview = true
+src = ["src", "tests"]
+target-version = "py{{ python_version.split('.')[:2]|join }}"
+
+[tool.ruff.format]
+docstring-code-format = true
+skip-magic-trailing-comma = true
+
+[tool.ruff.lint]
+{%- if development_environment == "strict" %}
+select = ["ALL"]
+ignore = [
+    "ANN002", # Missing type annotation for args. Complicates the code too much with the current annotation system.
+    "ANN003", # Missing type annotation for kwargs. Complicates the code too much with the current annotation system.
+    "COM812", # Missing trailing comma in a single-line list. Already handled by ruff formatter
+    "CPY001", # Copyright notice missing. Not always needed.
+    "E501", # Line too long. Already handled by ruff formatter
+    "E731", # Do not assign a lambda expression. Do not agree with this rule, it improves readability as it is self-documenting the lambda function.
+    "RET504", # Unnecessary assign before return. This is not bad, it helps debugging.
+    "S311", # Standard pseudo-random generators are not suitable for security/cryptographic purposes. Our use case is not security/cryptographic.
+    "TRY003", # Raise exception with vanilla arguments. Creating exception classes should be done only when really needed.
+    "W505", # Doc line too long. Editor autowraps doc, and it's too much work to fix it.
+    "ISC001", # single-line-implicit-string-concatenation, `z = "The quick " "brown fox."` becomes `z = "The quick brown fox."` This rule may cause conflicts when used with the formatter.
+    "DOC201", # `return` is not documented in docstring. Too verbose for most projects.
+    "DOC501", # Raised exception missing from docstring. Too verbose for most projects.
+    "PLC0415", # `import` should be at top-level. Lazy / conditional imports (e.g. optional Sentry) are intentional.
+    "RUF105", # noqa-comments (preview). We suppress with `# noqa`; do not force the `# ruff: ignore` syntax.
+    "RUF201", # rule-codes-in-selectors (preview). This config references rules by code (with comments), on purpose.
+    "TC003", # Move standard library import into a type-checking block. Target-version dependent: on 3.14 (PEP 649) ruff wants the import hoisted and the quotes removed, which then raises NameError on 3.12/3.13. One source cannot satisfy both.
+]
+unfixable = ["ERA001", "F401", "F841", "T201", "T203"]
+{%- else %}
+select = ["A", "ASYNC", "B", "C4", "C90", "D", "DTZ", "E", "F", "FLY", "I", "ISC", "LOG", "N", "NPY", "PERF", "PGH", "PIE", "PL", "PT", "Q", "RET", "RUF", "RSE", "SIM", "TID", "UP", "W", "YTT"]
+# PLC0415: intentional lazy/conditional imports. RUF105 (preview): we suppress with `# noqa`.
+# RUF100: stub `# noqa` comments target strict's fuller ruleset (ARG/FBT/S), unused here.
+# RUF201 (preview): this config references rules by code (with comments), on purpose.
+ignore = ["D203", "D213", "E501", "PGH003", "PLC0415", "RET504", "RUF100", "RUF105", "RUF201"]
+unfixable = ["F401", "F841"]
+{%- endif %}
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101", "INP001", "D100", "D101", "SLF"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.flake8-unused-arguments]
+ignore-variadic-names = true  # Allow unused *args and **kwargs in function signature
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+split-on-trailing-comma = false  # Pairs with skip-magic-trailing-comma
+
+[tool.ruff.lint.pycodestyle]
+max-doc-length = 99
+
+[tool.ruff.lint.pydocstyle]
+convention = "{{ docstring_style|lower }}"
+
+[tool.ruff.lint.pylint]  # https://docs.astral.sh/ruff/settings/#lint_pylint
+max-args = 6
+max-public-methods = 30
+
+[tool.codespell]  # https://github.com/codespell-project/codespell
+builtin = "en-GB_to_en-US,clear,code,rare"
+check-filenames = true
+ignore-words-list = "architecte,jupyter,librairies,projet"  # French terms in CLAUDE.md (bilingual docs)
+skip = "./*_cache/,./.venv,./reports,./uv.lock"
+
+[tool.poe]  # https://poethepoet.natn.io/guides/uv_guide.html
+# Run tasks in the already-activated virtualenv instead of via `uv run`, which would
+# trigger an implicit `uv sync` that reinstalls the editable project into a read-only
+# baked venv (e.g. in the devcontainer / CI), failing with a permission error.
+executor.type = "simple"
+
+[tool.poe.tasks]  # https://github.com/nat-n/poethepoet
+{%- if with_fastapi_api %}
+
+  # `use_exec` replaces the poe process with the server instead of running it as a
+  # child, so the container's PID 1 is the server itself and SIGTERM reaches it.
+  # Without it, `docker stop` never shuts the workers down gracefully and waits
+  # out its timeout on every deploy. It requires `cmd` tasks, not a `shell` task.
+  # `bool(${dev})` rather than `${dev}`: a boolean arg leaves its environment
+  # variable unset when the flag is absent, which is not a valid expression.
+  [tool.poe.tasks.api]
+  help = "Serve the REST API"
+  control.expr = "bool(${dev})"
+
+    [[tool.poe.tasks.api.switch]]
+    case = "True"
+    cmd = """
+      uvicorn
+        --host $host
+        --port $port
+        --reload
+        {{ project_name_snake_case }}.api:app
+      """
+    use_exec = true
+
+    [[tool.poe.tasks.api.switch]]
+    case = "False"
+    cmd = """
+      gunicorn
+        --access-logfile -
+        --bind $host:$port
+        --graceful-timeout 10
+        --keep-alive 10
+        --log-file -
+        --timeout 30
+        --worker-class uvicorn.workers.UvicornWorker
+        --worker-tmp-dir /dev/shm
+        --workers 2
+        {{ project_name_snake_case }}.api:app
+      """
+    use_exec = true
+
+    [[tool.poe.tasks.api.args]]
+    help = "Bind socket to this host (default: 0.0.0.0)"
+    name = "host"
+    options = ["--host"]
+    default = "0.0.0.0"
+
+    [[tool.poe.tasks.api.args]]
+    help = "Bind socket to this port (default: 8000)"
+    name = "port"
+    options = ["--port"]
+    default = "8000"
+
+    [[tool.poe.tasks.api.args]]
+    help = "Enable development mode"
+    type = "boolean"
+    name = "dev"
+    options = ["--dev"]
+{%- endif %}
+
+  [tool.poe.tasks.lint]
+  help = "Lint this {{ project_type }}"
+
+    [[tool.poe.tasks.lint.sequence]]
+    cmd = """
+      pre-commit run
+        --all-files
+        --color always
+      """
+{%- if development_environment == "strict" %}
+
+    [[tool.poe.tasks.lint.sequence]]
+    shell = "safety check --continue-on-error --full-report"
+{%- endif %}
+
+  [tool.poe.tasks.test]
+  help = "Test this {{ project_type }}"
+
+    [[tool.poe.tasks.test.sequence]]
+    cmd = "coverage run"
+
+    [[tool.poe.tasks.test.sequence]]
+    cmd = "coverage report"
+
+    [[tool.poe.tasks.test.sequence]]
+    cmd = "coverage html"
+
+    [[tool.poe.tasks.test.sequence]]
+    cmd = "coverage xml"
+
+  [tool.poe.tasks.update]
+  help = "Update the project from its Copier template"
+  cmd = "uvx copier update"

@@ -1,0 +1,67 @@
+[project]  # https://packaging.python.org/en/latest/specifications/pyproject-toml/
+name = "baseline-app-template"
+version = "1.0.0"
+description = "A Copier template for scaffolding Python apps at Baseline."
+readme = "README.md"
+requires-python = ">=3.12,<4.0"
+
+[dependency-groups]  # https://docs.astral.sh/uv/concepts/projects/dependencies/#dependency-groups
+dev = [
+  "commitizen>=4.18.0",
+  "copier>=9.18.2",
+  "pre-commit>=4.0.0",
+  "pytest>=8.3.0",
+  "pyyaml>=6.0.0",
+  "ruff>=0.16.0",
+]
+
+[tool.uv]  # https://docs.astral.sh/uv/reference/settings/
+# This repository is a template, not an installable package: there is nothing
+# to build, so uv manages the environment without installing the project.
+package = false
+
+[tool.commitizen]  # https://commitizen-tools.github.io/commitizen/config/
+# Copier resolves a template to its newest git tag, so `cz bump` is what
+# publishes a template change to generated projects.
+bump_message = "bump(release): v$current_version → v$new_version"
+tag_format = "v$version"
+# Set here rather than as a `cz bump` flag so a release tagged from a terminal
+# matches one tagged by the workflow. commitizen tags are lightweight by
+# default; v1.0.0 was created annotated by hand.
+annotated_tag = true
+# CHANGELOG.md uses commitizen's own `## vX.Y.Z (date)` headings rather than
+# Keep a Changelog's `## [X.Y.Z] - date`. That is what lets an incremental run
+# find where to stop, so a bump prepends one section instead of rewriting the
+# file from the first commit and replaying the inherited substrate history.
+update_changelog_on_bump = true
+version_provider = "uv"
+
+[tool.pytest.ini_options]  # https://docs.pytest.org/en/latest/reference/reference.html#ini-options-ref
+addopts = "--color=yes --verbosity=2"
+testpaths = ["tests"]
+xfail_strict = true
+
+[tool.ruff]  # https://docs.astral.sh/ruff/
+fix = true
+line-length = 99
+src = ["tests"]
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["A", "ASYNC", "B", "C4", "C90", "D", "DTZ", "E", "F", "FLY", "I", "ISC", "LOG", "N", "PERF", "PGH", "PIE", "PL", "PT", "Q", "RET", "RUF", "RSE", "SIM", "TID", "UP", "W", "YTT"]
+ignore = ["D203", "D213", "E501", "RET504"]
+unfixable = ["F401", "F841"]
+
+[tool.ruff.lint.per-file-ignores]
+# The test suite asserts on generated files, so imports are local to the tests
+# that need them and magic values are the point.
+"tests/*" = ["PLC0415", "PLR2004"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.lint.isort]
+lines-after-imports = 2
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"

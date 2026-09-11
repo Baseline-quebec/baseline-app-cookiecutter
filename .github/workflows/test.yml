@@ -13,45 +13,56 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12", "3.13"]
+        python-version: ["3.12", "3.13", "3.14"]
         include:
           - python-version: "3.12"
             variant: full
-            extra-context: '{"project_type": "app", "project_name": "My Project", "python_version": "3.12", "with_fastapi_api": "1", "with_typer_cli": "1", "with_sentry": "0"}'
+            answers: >-
+              -d project_name="My Project" -d python_version=3.12
+              -d with_fastapi_api=true -d with_typer_cli=true -d with_sentry=false
           - python-version: "3.13"
             variant: minimal
-            extra-context: '{"project_type": "app", "project_name": "My Project", "python_version": "3.13", "with_fastapi_api": "0", "with_typer_cli": "0", "with_sentry": "0"}'
+            answers: >-
+              -d project_name="My Project" -d python_version=3.13
+              -d with_fastapi_api=false -d with_typer_cli=false -d with_sentry=false
+          - python-version: "3.14"
+            variant: full
+            answers: >-
+              -d project_name="My Project" -d python_version=3.14
+              -d with_fastapi_api=true -d with_typer_cli=true -d with_sentry=false
 
     name: Python ${{ matrix.python-version }} — ${{ matrix.variant }}
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
-          path: template
+          path: repo
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-          cache: pip
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.1.0
 
       - name: Scaffold Python project
+        # `--vcs-ref=HEAD` renders the checked-out revision: without it, Copier
+        # resolves a local git template to its newest tag.
         run: |
-          pip install --no-input cruft
-          cruft create --no-input --extra-context '${{ matrix.extra-context }}' ./template/
+          uvx copier copy --defaults --vcs-ref=HEAD \
+            ${{ matrix.answers }} ./repo/ ./my-project/
 
-      - name: Verify cruft link
-        run: cruft check
+      - name: Verify Copier answers file
+        run: |
+          test -f .copier-answers.yml
+          grep -q '^_commit:' .copier-answers.yml
+          grep -q '^_src_path:' .copier-answers.yml
         working-directory: ./my-project/
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
 
       - name: Install @devcontainers/cli
-        run: npm install --location=global @devcontainers/cli@latest
+        run: npm install --location=global @devcontainers/cli@0.88.0
 
       - name: Start Dev Container with Python ${{ matrix.python-version }}
         run: |

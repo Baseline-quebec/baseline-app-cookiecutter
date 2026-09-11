@@ -52,6 +52,7 @@ dist/
 
 # Python
 __pycache__/
+*.egg-info/
 *.py[cdo]
 
 # Ruff
@@ -60,5 +61,9 @@ __pycache__/
 # Terraform
 .terraform/
 
+# Claude Code
+.claude/settings.local.json
+
 # VS Code
-.vscode/
+.vscode/*
+!.vscode/launch.json

@@ -1,0 +1,95 @@
+# {{ project_name }}
+
+{{ project_description }}
+
+## Documentation
+
+- [Architecture Decision Records](docs/decisions/)
+
+## Setup
+
+### Environment variables
+
+Create a copy of `.env.example` and fill in the values:
+
+```bash
+cp .env.example .env
+```
+
+### Local setup
+
+Requirements:
+
+- [Python {{ python_version }}](https://www.python.org/downloads/)
+- [uv](https://docs.astral.sh/uv/getting-started/installation/)
+
+```bash
+uv sync
+```
+
+### Container setup
+
+Requirements: [Docker](https://docs.docker.com/get-docker/)
+
+```bash
+docker compose up --build
+```
+
+## Usage
+
+Run `poe` to see all available tasks.
+{% if with_fastapi_api %}
+### API
+{%- if with_fastapi_api %}
+
+```bash
+poe api --dev
+```
+
+Access the API at [localhost:8000](http://localhost:8000) and the docs at [localhost:8000/docs](http://localhost:8000/docs).
+{%- endif %}
+{% endif %}
+{%- if with_typer_cli %}
+
+### CLI
+
+```bash
+uv run {{ project_name_kebab_case }} info
+uv run {{ project_name_kebab_case }} config
+{%- if with_fastapi_api %}
+uv run {{ project_name_kebab_case }} health
+{%- endif %}
+```
+{%- endif %}
+
+### Common tasks
+
+```bash
+poe test          # run tests
+poe lint          # run linting
+```
+
+## Project structure
+
+```
+{{ project_name_kebab_case }}/
+├── src/{{ project_name_snake_case }}/  # source code
+│   ├── settings.py                                    # pydantic-settings config
+{%- if with_fastapi_api %}
+│   ├── api.py                                         # FastAPI application
+{%- endif %}
+{%- if with_typer_cli %}
+│   ├── cli.py                                         # Typer CLI
+{%- endif %}
+│   ├── models.py                                      # Pydantic models
+│   └── services.py                                    # business logic
+├── tests/                                             # test suite
+├── docs/decisions/                                    # architecture decision records
+├── pyproject.toml                                     # project config (uv)
+├── Dockerfile                                         # production image
+└── docker-compose.yml                                 # local development
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).

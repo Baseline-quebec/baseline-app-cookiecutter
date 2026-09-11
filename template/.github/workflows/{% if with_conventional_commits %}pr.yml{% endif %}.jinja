@@ -16,6 +16,6 @@ jobs:
       # rather than being interpolated into the script.
       - name: Check PR title
         env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_TITLE: {% raw %}${{ github.event.pull_request.title }}{% endraw %}
         run: |
           uvx --from=commitizen cz check --message "$PR_TITLE"

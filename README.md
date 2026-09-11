@@ -1,8 +1,8 @@
-[![CI](https://github.com/Baseline-quebec/baseline-app-cookiecutter/actions/workflows/ci.yml/badge.svg)](https://github.com/Baseline-quebec/baseline-app-cookiecutter/actions/workflows/ci.yml) [![Integration](https://github.com/Baseline-quebec/baseline-app-cookiecutter/actions/workflows/test.yml/badge.svg)](https://github.com/Baseline-quebec/baseline-app-cookiecutter/actions/workflows/test.yml) [![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/Baseline-quebec/baseline-app-cookiecutter) [![Open in GitHub Codespaces](https://img.shields.io/static/v1?label=GitHub%20Codespaces&message=Open&color=blue&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=Baseline-quebec/baseline-app-cookiecutter)
+[![CI](https://github.com/Baseline-quebec/baseline-app-template/actions/workflows/ci.yml/badge.svg)](https://github.com/Baseline-quebec/baseline-app-template/actions/workflows/ci.yml) [![Integration](https://github.com/Baseline-quebec/baseline-app-template/actions/workflows/test.yml/badge.svg)](https://github.com/Baseline-quebec/baseline-app-template/actions/workflows/test.yml) [![Open in Dev Containers](https://img.shields.io/static/v1?label=Dev%20Containers&message=Open&color=blue&logo=visualstudiocode)](https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/Baseline-quebec/baseline-app-template) [![Open in GitHub Codespaces](https://img.shields.io/static/v1?label=GitHub%20Codespaces&message=Open&color=blue&logo=github)](https://github.com/codespaces/new?hide_repo_select=true&ref=main&repo=Baseline-quebec/baseline-app-template)
 
-# Baseline App Cookiecutter
+# Baseline App Template
 
-A modern [Cookiecutter](https://github.com/cookiecutter/cookiecutter) template for scaffolding Python packages and apps at [Baseline](https://github.com/Baseline-quebec).
+A modern [Copier](https://copier.readthedocs.io/) template for scaffolding Python apps at [Baseline](https://github.com/Baseline-quebec).
 
 ## Features
 
@@ -10,9 +10,8 @@ A modern [Cookiecutter](https://github.com/cookiecutter/cookiecutter) template f
 - Cross-platform support for Linux, macOS (Apple silicon and Intel), and Windows
 - Packaging and dependency management with [uv](https://github.com/astral-sh/uv)
 - Task running with [Poe the Poet](https://github.com/nat-n/poethepoet)
-- Code formatting and linting with [Ruff](https://github.com/charliermarsh/ruff), [Mypy](https://github.com/python/mypy), and [Pre-commit](https://pre-commit.com/)
+- Code formatting and linting with [Ruff](https://github.com/astral-sh/ruff), [Mypy](https://github.com/python/mypy), and [Pre-commit](https://pre-commit.com/)
 - Spell checking with [codespell](https://github.com/codespell-project/codespell)
-- Documentation with [MkDocs Material](https://squidfunk.github.io/mkdocs-material/)
 - Optional [Conventional Commits](https://www.conventionalcommits.org/) with [Commitizen](https://github.com/commitizen-tools/commitizen)
 - Optional [FastAPI](https://github.com/tiangolo/fastapi) REST API with health check, CRUD stubs, and Sentry integration
 - Optional [Typer](https://github.com/tiangolo/typer) CLI with Rich output
@@ -20,7 +19,7 @@ A modern [Cookiecutter](https://github.com/cookiecutter/cookiecutter) template f
 - Continuous integration with [GitHub Actions](https://docs.github.com/en/actions)
 - [LLM Configuration Scanner](https://github.com/Baseline-quebec/tracking-llm-discontinued) to detect deprecated LLM model references
 - Test coverage with [Coverage.py](https://github.com/nedbat/coveragepy)
-- Scaffolding updates with [Cruft](https://github.com/cruft/cruft)
+- Scaffolding updates with [Copier](https://copier.readthedocs.io/en/stable/updating/)
 - Dependency updates with [Dependabot](https://docs.github.com/en/code-security/supply-chain-security/keeping-your-dependencies-updated-automatically/about-dependabot-version-updates)
 - [Architecture Decision Records](https://cognitect.com/blog/2011/11/15/documenting-architecture-decisions) (ADR) template
 - Claude Code instructions (`CLAUDE.md`) for AI-assisted development
@@ -29,40 +28,53 @@ A modern [Cookiecutter](https://github.com/cookiecutter/cookiecutter) template f
 
 ### Creating a new Python project
 
-1. Install [Cruft](https://github.com/cruft/cruft) and [Cookiecutter](https://github.com/cookiecutter/cookiecutter):
+> [!TIP]
+> [Install uv](https://docs.astral.sh/uv/getting-started/installation/) first, so you can run Copier without installing it globally.
+
+1. [Create a new repository](https://github.com/new) and clone it locally.
+
+2. Run the following command in the **parent directory** of the cloned repository:
 
    ```sh
-   pip install --upgrade "cruft>=2.12.0" "cookiecutter>=2.1.1"
+   uvx copier copy gh:Baseline-quebec/baseline-app-template my-project
    ```
 
-2. [Create a new repository](https://github.com/new) and clone it locally.
+   Copier writes the project into the directory you name, so pass the cloned
+   repository's path to scaffold straight into it.
 
-3. Run the following command in the **parent directory** of the cloned repository:
-
-   ```sh
-   cruft create -f https://github.com/Baseline-quebec/baseline-app-cookiecutter
-   ```
-
-   <details>
-   <summary>If your repository name differs from the project's slugified name</summary>
-
-   Copy the scaffolded project into the repository:
-
-   ```sh
-   cp -r {project-name}/ {repository-name}/
-   ```
-
-   </details>
-
-4. Add the remote origin and push.
+3. Commit the result and push.
 
 ### Updating an existing project
 
+From inside the generated project:
+
 ```sh
-cruft update --cookiecutter-input
+uvx copier update
 ```
 
-If any file updates failed, resolve conflicts by inspecting the `.rej` files.
+Copier reads `.copier-answers.yml` to know which template version the project came from, re-asks nothing, and applies only the template's changes.
+
+Where your edits and the template's overlap, Copier performs a three-way merge and leaves **inline conflict markers** (`<<<<<<< before updating`). Find them with `git status` and resolve them like any merge conflict. Pass `--conflict=rej` instead if you prefer `.rej` files alongside the originals.
+
+Generated projects also expose this as `poe update`.
+
+### Migrating a project generated with Cookiecutter
+
+Projects scaffolded before this template moved to Copier have a `.cruft.json` instead of a `.copier-answers.yml`. There is no automatic migration; recreate the answers file once:
+
+1. Create `.copier-answers.yml` in the project root:
+
+   ```yaml
+   # Changes here will be overwritten by Copier; NEVER EDIT MANUALLY.
+   _commit: v0.1.0
+   _src_path: gh:Baseline-quebec/baseline-app-template
+   ```
+
+   Set `_commit` to the template tag the project was last updated from, and copy the remaining answers out of `.cruft.json`'s `context.cookiecutter` object (dropping the keys that start with `_`).
+
+2. Delete `.cruft.json`.
+
+3. Run `uvx copier update` and resolve any conflicts.
 
 ## Developing this template
 
@@ -70,9 +82,10 @@ If any file updates failed, resolve conflicts by inspecting the `.rej` files.
 
 | Command | Description |
 |---------|-------------|
-| `pip install cookiecutter pytest pyyaml` | Install test dependencies |
-| `pytest tests/ -v` | Run unit tests (~60 tests, ~7s) |
-| `pre-commit run --all-files` | Run linting on template code |
+| `uv sync` | Install the development environment |
+| `uv run pytest tests/ -v` | Run unit tests (~119 tests, ~35s) |
+| `uv run ruff check . && uv run ruff format --check .` | Lint this repository's own Python |
+| `pre-commit run --all-files` | Run all pre-commit hooks |
 
 ### CI/CD
 
@@ -80,26 +93,26 @@ This repository has three CI workflows:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| **CI** (`ci.yml`) | Push / PR | Runs unit tests on Python 3.12 + 3.13 (~20s) |
+| **CI** (`ci.yml`) | Push / PR | Runs unit tests on Python 3.12, 3.13 and 3.14, plus ruff |
 | **PR** (`pr.yml`) | PR | Validates PR title follows conventional commits |
-| **Integration** (`test.yml`) | Push / PR | Scaffolds a project, starts a devcontainer, runs `poe lint` + `poe test` (~3 min) |
+| **Release** (`release.yml`) | Manual dispatch | Bumps the version, writes the changelog, pushes the tag |
+| **Integration** (`test.yml`) | Push / PR | Scaffolds a project on Python 3.12, 3.13 and 3.14, starts a devcontainer, runs `poe lint` + `poe test` |
 
 ### Project structure
 
 ```
-baseline-app-cookiecutter/
-├── cookiecutter.json                  # Template parameters
-├── hooks/
-│   ├── pre_gen_project.py             # Input validation
-│   └── post_gen_project.py            # Conditional file removal
+baseline-app-template/
+├── copier.yml                         # Template questions and computed values
+├── pyproject.toml                     # This repo's own tooling (uv, ruff, pytest)
+├── uv.lock
 ├── tests/
-│   └── test_cookiecutter.py           # Unit tests for the template
-├── {{ cookiecutter.__project_name_kebab_case }}/
+│   └── test_template.py               # Unit tests for the template
+├── template/                          # Everything below is rendered into the project
 │   ├── .devcontainer/                 # Dev Container config
 │   ├── .github/workflows/             # CI + LLM scan for generated projects
-│   ├── src/{{ ... }}/                 # Source code stubs
+│   ├── src/{{ project_name_snake_case }}/
 │   ├── tests/                         # Test stubs
-│   ├── pyproject.toml                 # project config (uv)
+│   ├── pyproject.toml.jinja           # project config (uv)
 │   └── ...
 ├── .github/
 │   ├── workflows/ci.yml               # Unit tests
@@ -110,11 +123,35 @@ baseline-app-cookiecutter/
 └── .pre-commit-config.yaml            # Linting for template code
 ```
 
-## Upstream sync
+Every file under `template/` carries a `.jinja` suffix and is rendered with the
+answers from `copier.yml`. Files and directories are included conditionally
+through their **path**, not through a post-generation hook — for example
+`src/{{ project_name_snake_case }}/{% if with_fastapi_api %}api.py{% endif %}.jinja`
+renders to an empty name, and is therefore skipped, when the API is not wanted.
 
-This template is a fork of [superlinear-ai/substrate](https://github.com/superlinear-ai/substrate). The upstream has since migrated to [uv](https://github.com/astral-sh/uv) (replacing Poetry), [Copier](https://copier.readthedocs.io/) (replacing Cookiecutter), and [ty](https://github.com/astral-sh/ty) (replacing Mypy).
+### Releasing a new template version
 
-We have adopted **uv** for packaging and dependency management, while intentionally staying on **Cookiecutter + Mypy** to maintain compatibility with existing Baseline projects. Instead of a full upstream merge, we cherry-pick individual improvements that are independent of the remaining migrations.
+Copier resolves a template to its **newest git tag**, so generated projects only
+see a change after it is tagged.
+
+Run the **Release** workflow from the Actions tab. It derives the version from
+the Conventional Commits since the last tag, writes the changelog entry, commits
+the bump and pushes the tag.
+
+To release from a terminal instead:
+
+```sh
+git checkout main
+uv run cz bump
+git push origin main --tags
+```
+
+Because this repository squash-merges, a release is sized by **PR titles**, not
+by the commits inside them: `feat` gives a minor, `fix`/`refactor`/`perf` a
+patch, a `!` a major, and anything else no release at all.
+
+The test suite always renders the working tree by passing `--vcs-ref=HEAD`, so it
+tests the branch rather than the newest tag.
 
 ## Template parameters
 
@@ -126,11 +163,11 @@ We have adopted **uv** for packaging and dependency management, while intentiona
 | `project_url` <br> auto | Automatically constructed from `github_org` and `project_name`. |
 | `author_name` <br> "John Smith" | The full name of the primary author. |
 | `author_email` <br> "john@example.com" | The email address of the primary author. |
-| `license` <br> ["Proprietary", "MIT", "Apache-2.0"] | The license. Generates a LICENSE file for MIT and Apache-2.0. |
+| `license` <br> ["Proprietary", "MIT", "Apache-2.0"] | Recorded as SPDX metadata in `pyproject.toml`. No LICENSE file is generated. |
 | `python_version` <br> "3.12" | The minimum Python version. |
 | `development_environment` <br> ["strict", "simple"] | Strict mode enables additional Ruff rules, strict Mypy, and strict Pytest. |
-| `with_conventional_commits` <br> ["0", "1"] | Adds Commitizen for conventional commits. Auto-enabled in strict mode. |
-| `with_fastapi_api` <br> ["0", "1"] | Adds FastAPI with health endpoint, CRUD stubs, Pydantic models, and `poe api`. |
-| `with_typer_cli` <br> ["0", "1"] | Adds Typer CLI with `info`, `config`, and `health` commands. |
-| `with_pytest_bdd` <br> ["0", "1"] | Adds pytest-bdd with Gherkin feature files. Default: plain pytest. |
-| `with_sentry` <br> ["0", "1"] | Adds Sentry SDK with FastAPI integration. Requires `with_fastapi_api=1`. |
+| `with_conventional_commits` <br> bool, auto | Adds Commitizen for conventional commits. Defaults to true in strict mode. |
+| `with_fastapi_api` <br> bool, true | Adds FastAPI with health endpoint, CRUD stubs, Pydantic models, and `poe api`. |
+| `with_typer_cli` <br> bool, true | Adds Typer CLI with `info`, `config`, and `health` commands. |
+| `with_pytest_bdd` <br> bool, false | Adds pytest-bdd with Gherkin feature files. Default: plain pytest. |
+| `with_sentry` <br> bool, false | Adds Sentry SDK with FastAPI integration. Only asked when `with_fastapi_api` is true. |
