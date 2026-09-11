@@ -133,11 +133,21 @@ renders to an empty name, and is therefore skipped, when the API is not wanted.
 Copier resolves a template to its **newest git tag**, so generated projects only
 see a change after it is tagged:
 
-```sh
-git checkout main
-cz bump
-git push origin main --tags
-```
+1. Close out `CHANGELOG.md` by hand: rename `## [Unreleased]` to
+   `## [<version>] - <date>` and open a fresh, empty `## [Unreleased]` above it.
+   The changelog is not generated — it groups entries by whether they came from
+   upstream or from Baseline, which commit messages cannot express.
+
+2. Bump and tag:
+
+   ```sh
+   git checkout main
+   uv run cz bump
+   git push origin main --tags
+   ```
+
+`cz bump` picks the version from the Conventional Commits since the last tag and
+writes the tag; it leaves `CHANGELOG.md` alone.
 
 Until the first tag exists, `copier copy` falls back to `HEAD` and warns about it.
 The test suite always renders the working tree by passing `--vcs-ref=HEAD`.

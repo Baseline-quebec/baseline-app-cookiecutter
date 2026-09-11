@@ -95,6 +95,9 @@ upstream.
 - A `pyproject.toml` and `uv.lock` for this repository itself, so its test
   dependencies are declared and ruff is configured against its own test suite.
   `[tool.uv] package = false` — this is a template, not an installable package.
+  Commitizen is configured here so `cz bump` tags releases, which is what
+  publishes a template change to generated projects; it does not touch this
+  changelog, which is maintained by hand.
 
 #### Fixed
 
