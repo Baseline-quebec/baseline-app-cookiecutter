@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12", "3.13"]
+        python-version: ["3.12", "3.13", "3.14"]
         include:
           - python-version: "3.12"
             variant: full
@@ -25,6 +25,11 @@ jobs:
             answers: >-
               -d project_name="My Project" -d python_version=3.13
               -d with_fastapi_api=false -d with_typer_cli=false -d with_sentry=false
+          - python-version: "3.14"
+            variant: full
+            answers: >-
+              -d project_name="My Project" -d python_version=3.14
+              -d with_fastapi_api=true -d with_typer_cli=true -d with_sentry=false
 
     name: Python ${{ matrix.python-version }} — ${{ matrix.variant }}
 

@@ -48,7 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `CODEOWNERS` file (@davebulaval, @dpothier)
 - Fast CI workflow (`ci.yml`) — unit tests on Python 3.12, 3.13 and 3.14
 - PR title check workflow (`pr.yml`) — conventional commits validation
-- Integration test matrix — full (FastAPI + Typer) and minimal (bare) variants
+- Integration test matrix on Python 3.12, 3.13 and 3.14 — full (FastAPI + Typer) and minimal (bare) variants
 - Cruft link verification step in integration tests
 - codespell linter in pre-commit and pyproject.toml
 - PR title check workflow for generated projects (`pr.yml`)
