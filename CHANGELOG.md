@@ -27,6 +27,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
   `@devcontainers/cli`, and uses current action majors.
 - VS Code fix-on-save is scoped to `[python]` and to ruff's own code actions.
 
+### Removed
+
+- This repository's AGPL-3.0 `LICENSE`, inherited from substrate before it
+  relicensed to MIT
+- The generated `LICENSE` file. The `license` answer is still recorded as SPDX
+  metadata in the generated `pyproject.toml`
+
 ### Added
 
 - GitHub Pages workflow (`docs.yml`) that publishes the MkDocs site, plus the

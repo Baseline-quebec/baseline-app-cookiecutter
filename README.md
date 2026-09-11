@@ -147,7 +147,7 @@ The test suite always renders the working tree by passing `--vcs-ref=HEAD`.
 
 This template is a fork of [superlinear-ai/substrate](https://github.com/superlinear-ai/substrate). We have adopted the upstream's migrations to [uv](https://github.com/astral-sh/uv) (replacing Poetry) and [Copier](https://copier.readthedocs.io/) (replacing Cookiecutter).
 
-We intentionally stay on **Mypy** rather than [ty](https://github.com/astral-sh/ty), which is still pre-1.0 and has no plugin system — the template depends on the `pydantic.mypy` plugin. Upstream has also dropped the `package` project type, the GitLab CI provider, and the generated `LICENSE`, all of which we keep. Instead of a full upstream merge, we cherry-pick individual improvements.
+We intentionally stay on **Mypy** rather than [ty](https://github.com/astral-sh/ty), which is still pre-1.0 and has no plugin system — the template depends on the `pydantic.mypy` plugin. Upstream has also dropped the `package` project type and the GitLab CI provider, both of which we keep. Instead of a full upstream merge, we cherry-pick individual improvements.
 
 ## Template parameters
 
@@ -159,7 +159,7 @@ We intentionally stay on **Mypy** rather than [ty](https://github.com/astral-sh/
 | `project_url` <br> auto | Automatically constructed from `github_org` and `project_name`. |
 | `author_name` <br> "John Smith" | The full name of the primary author. |
 | `author_email` <br> "john@example.com" | The email address of the primary author. |
-| `license` <br> ["Proprietary", "MIT", "Apache-2.0"] | The license. Generates a LICENSE file for MIT and Apache-2.0. |
+| `license` <br> ["Proprietary", "MIT", "Apache-2.0"] | Recorded as SPDX metadata in `pyproject.toml`. No LICENSE file is generated. |
 | `python_version` <br> "3.12" | The minimum Python version. |
 | `development_environment` <br> ["strict", "simple"] | Strict mode enables additional Ruff rules, strict Mypy, and strict Pytest. |
 | `with_conventional_commits` <br> bool, auto | Adds Commitizen for conventional commits. Defaults to true in strict mode. |

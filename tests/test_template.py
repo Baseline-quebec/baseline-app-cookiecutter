@@ -90,28 +90,16 @@ class TestBasicGeneration:
 
 
 class TestLicense:
-    """Verify license parameter behavior."""
+    """Verify license parameter behavior.
 
-    def test_mit_license(self, output_dir: Path) -> None:
-        """MIT license generates a LICENSE file with MIT text."""
-        project = bake(output_dir, license="MIT")
-        license_file = project / "LICENSE"
-        assert license_file.is_file()
-        content = license_file.read_text()
-        assert "MIT License" in content
-        assert "John Smith" in content
+    The template records the license as SPDX metadata but never writes a
+    LICENSE file; projects that need one add it themselves.
+    """
 
-    def test_apache_license(self, output_dir: Path) -> None:
-        """Apache-2.0 license generates a LICENSE file with Apache text."""
-        project = bake(output_dir, license="Apache-2.0")
-        license_file = project / "LICENSE"
-        assert license_file.is_file()
-        content = license_file.read_text()
-        assert "Apache License" in content
-
-    def test_proprietary_no_license_file(self, output_dir: Path) -> None:
-        """Proprietary license removes the LICENSE file."""
-        project = bake(output_dir, license="Proprietary")
+    @pytest.mark.parametrize("license_id", ["MIT", "Apache-2.0", "Proprietary"])
+    def test_no_license_file_is_generated(self, output_dir: Path, license_id: str) -> None:
+        """No license choice writes a LICENSE file."""
+        project = bake(output_dir, license=license_id)
         assert not (project / "LICENSE").exists()
 
     def test_license_in_pyproject(self, output_dir: Path) -> None:
@@ -119,6 +107,12 @@ class TestLicense:
         project = bake(output_dir, license="MIT")
         content = (project / "pyproject.toml").read_text()
         assert 'license = "MIT"' in content
+
+    def test_proprietary_uses_license_ref(self, output_dir: Path) -> None:
+        """Proprietary is expressed as a valid SPDX license reference."""
+        project = bake(output_dir, license="Proprietary")
+        content = (project / "pyproject.toml").read_text()
+        assert 'license = "LicenseRef-Proprietary"' in content
 
 
 # ---------------------------------------------------------------------------
@@ -505,7 +499,7 @@ class TestCombinations:
             development_environment="strict",
         )
         assert project.is_dir()
-        assert (project / "LICENSE").is_file()
+        assert not (project / "LICENSE").exists()
         assert (project / "tests" / "features").is_dir()
         assert (project / "tests" / "test_api.py").is_file()
         assert (project / "tests" / "test_cli.py").is_file()
