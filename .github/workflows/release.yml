@@ -1,0 +1,98 @@
+name: Release
+
+# Releasing is deliberate, not automatic: run this from the Actions tab once
+# CHANGELOG.md has been closed out for the new version.
+on:
+  workflow_dispatch:
+    inputs:
+      increment:
+        description: Force an increment instead of deriving it from the commits
+        required: false
+        type: choice
+        default: auto
+        options:
+          - auto
+          - PATCH
+          - MINOR
+          - MAJOR
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    # A tag on anything but main would be resolved by Copier as the newest
+    # template version.
+    if: github.ref == 'refs/heads/main'
+
+    name: Bump version and tag
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          # Commitizen reads the whole history and the existing tags to work out
+          # the increment.
+          fetch-depth: 0
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.1.0
+        with:
+          enable-cache: true
+
+      - name: Determine the next version
+        id: next
+        run: |
+          if [ "${{ inputs.increment }}" = "auto" ]; then
+            args=""
+          else
+            args="--increment ${{ inputs.increment }}"
+          fi
+          echo "args=$args" >> "$GITHUB_OUTPUT"
+          # Go by the exit code, not the output: when nothing is eligible
+          # commitizen still prints "tag to create" with the unchanged version
+          # before failing, so parsing alone would read as success.
+          set +e
+          out=$(uv run --frozen cz bump --dry-run --yes $args 2>&1)
+          rc=$?
+          set -e
+          printf '%s\n' "$out"
+          if [ "$rc" -ne 0 ]; then
+            echo "::error::commitizen found nothing to release (exit $rc). Only feat, fix, refactor, perf and breaking changes move the version; choose an increment explicitly to override."
+            exit 1
+          fi
+          version=$(printf '%s\n' "$out" | sed -n 's/^tag to create: v//p' | tail -1)
+          if [ -z "$version" ]; then
+            echo "::error::Could not read the next version from the commitizen output above."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Next version: $version"
+
+      # The changelog is maintained by hand, so a release can otherwise be
+      # tagged with the entries still sitting under [Unreleased].
+      - name: Check the changelog was closed out
+        run: |
+          if ! grep -q "^## \[${{ steps.next.outputs.version }}\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no '## [${{ steps.next.outputs.version }}]' heading. Rename [Unreleased] and open a fresh one, then re-run."
+            exit 1
+          fi
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version and tag
+        run: uv run --frozen cz bump --yes ${{ steps.next.outputs.args }}
+
+      - name: Push the bump commit and the tag
+        run: git push origin HEAD:main --tags
+
+      - name: Summary
+        run: |
+          echo "Released **v${{ steps.next.outputs.version }}**." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Copier resolves this template by its newest tag, so generated projects can now \`copier update\` to it." >> "$GITHUB_STEP_SUMMARY"

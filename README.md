@@ -95,6 +95,7 @@ This repository has three CI workflows:
 |----------|---------|-------------|
 | **CI** (`ci.yml`) | Push / PR | Runs unit tests on Python 3.12, 3.13 and 3.14, plus ruff |
 | **PR** (`pr.yml`) | PR | Validates PR title follows conventional commits |
+| **Release** (`release.yml`) | Manual dispatch | Bumps the version, commits and pushes the tag |
 | **Integration** (`test.yml`) | Push / PR | Scaffolds a project on Python 3.12, 3.13 and 3.14, starts a devcontainer, runs `poe lint` + `poe test` |
 
 ### Project structure
@@ -138,7 +139,11 @@ see a change after it is tagged:
    The changelog is not generated — it groups entries by whether they came from
    upstream or from Baseline, which commit messages cannot express.
 
-2. Bump and tag:
+2. Run the **Release** workflow from the Actions tab. It derives the version
+   from the Conventional Commits since the last tag, refuses to run if the
+   changelog has not been closed out, then commits the bump and pushes the tag.
+
+   To release from a terminal instead:
 
    ```sh
    git checkout main
