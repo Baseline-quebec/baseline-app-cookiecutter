@@ -95,7 +95,7 @@ This repository has three CI workflows:
 |----------|---------|-------------|
 | **CI** (`ci.yml`) | Push / PR | Runs unit tests on Python 3.12, 3.13 and 3.14, plus ruff |
 | **PR** (`pr.yml`) | PR | Validates PR title follows conventional commits |
-| **Release** (`release.yml`) | Manual dispatch | Bumps the version, commits and pushes the tag |
+| **Release** (`release.yml`) | Manual dispatch | Bumps the version, writes the changelog, pushes the tag |
 | **Integration** (`test.yml`) | Push / PR | Scaffolds a project on Python 3.12, 3.13 and 3.14, starts a devcontainer, runs `poe lint` + `poe test` |
 
 ### Project structure
@@ -132,36 +132,53 @@ renders to an empty name, and is therefore skipped, when the API is not wanted.
 ### Releasing a new template version
 
 Copier resolves a template to its **newest git tag**, so generated projects only
-see a change after it is tagged:
+see a change after it is tagged.
 
-1. Close out `CHANGELOG.md` by hand: rename `## [Unreleased]` to
-   `## [<version>] - <date>` and open a fresh, empty `## [Unreleased]` above it.
-   The changelog is not generated — it groups entries by whether they came from
-   upstream or from Baseline, which commit messages cannot express.
+Run the **Release** workflow from the Actions tab. It derives the version from
+the Conventional Commits since the last tag, writes the changelog entry, commits
+the bump and pushes the tag.
 
-2. Run the **Release** workflow from the Actions tab. It derives the version
-   from the Conventional Commits since the last tag, refuses to run if the
-   changelog has not been closed out, then commits the bump and pushes the tag.
+To release from a terminal instead:
 
-   To release from a terminal instead:
+```sh
+git checkout main
+uv run cz bump
+git push origin main --tags
+```
 
-   ```sh
-   git checkout main
-   uv run cz bump
-   git push origin main --tags
-   ```
+Because this repository squash-merges, a release is sized by **PR titles**, not
+by the commits inside them: `feat` gives a minor, `fix`/`refactor`/`perf` a
+patch, a `!` a major, and anything else no release at all.
 
-`cz bump` picks the version from the Conventional Commits since the last tag and
-writes the tag; it leaves `CHANGELOG.md` alone.
-
-Until the first tag exists, `copier copy` falls back to `HEAD` and warns about it.
-The test suite always renders the working tree by passing `--vcs-ref=HEAD`.
+The test suite always renders the working tree by passing `--vcs-ref=HEAD`, so it
+tests the branch rather than the newest tag.
 
 ## Upstream sync
 
 This template is a fork of [superlinear-ai/substrate](https://github.com/superlinear-ai/substrate). We have adopted the upstream's migrations to [uv](https://github.com/astral-sh/uv) (replacing Poetry) and [Copier](https://copier.readthedocs.io/) (replacing Cookiecutter).
 
-We intentionally stay on **Mypy** rather than [ty](https://github.com/astral-sh/ty), which is still pre-1.0 and has no plugin system — the template depends on the `pydantic.mypy` plugin. Upstream has also dropped the `package` project type and the GitLab CI provider, both of which we keep. Instead of a full upstream merge, we cherry-pick individual improvements.
+Instead of a full upstream merge we cherry-pick, so the changelog cannot record
+provenance. What we took and what we left is recorded here instead.
+
+**Adopted:** Copier (substrate#320), the `uv_build` backend (substrate#324),
+`use_exec` for the API server (substrate#343, though upstream's version matches
+no case and silently runs nothing, so ours uses `bool(${dev})`), the
+`*.egg-info/` ignore (substrate#273), `check-illegal-windows-names`
+(substrate#284), the `uv` commitizen provider (substrate#293), the well-known
+`[project.urls]` labels, and the ruff formatter options.
+
+**Not adopted:**
+
+- **[ty](https://github.com/astral-sh/ty)** (substrate#321) — pre-1.0 with no
+  plugin system, and the template depends on the `pydantic.mypy` plugin. We
+  stay on Mypy.
+- Upstream's ruff ruleset, `testpaths = ["src", "tests"]`, and their Dockerfile
+  and docker-compose rewrites.
+- Dropping the `package` project type or the GitLab CI provider, both of which
+  we keep.
+
+**Ours, diverging from upstream:** no documentation generation (upstream keeps
+MkDocs), and no generated `LICENSE`.
 
 ## Template parameters
 

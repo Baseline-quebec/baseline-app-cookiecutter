@@ -71,20 +71,6 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "Next version: $version"
 
-      # The changelog is maintained by hand, so a release can otherwise be
-      # tagged with the entries still sitting under [Unreleased].
-      - name: Check the changelog was closed out
-        run: |
-          if ! grep -q "^## \[${{ steps.next.outputs.version }}\]" CHANGELOG.md; then
-            echo "::error::CHANGELOG.md has no '## [${{ steps.next.outputs.version }}]' heading. Rename [Unreleased] and open a fresh one, then re-run."
-            exit 1
-          fi
-
-      # Attribute the bump commit to whoever dispatched the release, rather than
-      # to a hardcoded bot account id. `actor` and `actor_id` both describe the
-      # initial trigger, so they stay consistent on a re-run; there is no
-      # `triggering_actor_id` to pair with `triggering_actor`. Passed through
-      # the environment rather than interpolated into the script.
       - name: Configure git
         env:
           ACTOR: ${{ github.actor }}
