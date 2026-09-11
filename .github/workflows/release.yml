@@ -80,10 +80,18 @@ jobs:
             exit 1
           fi
 
+      # Attribute the bump commit to whoever dispatched the release, rather than
+      # to a hardcoded bot account id. `actor` and `actor_id` both describe the
+      # initial trigger, so they stay consistent on a re-run; there is no
+      # `triggering_actor_id` to pair with `triggering_actor`. Passed through
+      # the environment rather than interpolated into the script.
       - name: Configure git
+        env:
+          ACTOR: ${{ github.actor }}
+          ACTOR_ID: ${{ github.actor_id }}
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "$ACTOR"
+          git config user.email "$ACTOR_ID+$ACTOR@users.noreply.github.com"
 
       - name: Bump version and tag
         run: uv run --frozen cz bump --yes ${{ steps.next.outputs.args }}
