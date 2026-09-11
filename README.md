@@ -153,33 +153,6 @@ patch, a `!` a major, and anything else no release at all.
 The test suite always renders the working tree by passing `--vcs-ref=HEAD`, so it
 tests the branch rather than the newest tag.
 
-## Upstream sync
-
-This template is a fork of [superlinear-ai/substrate](https://github.com/superlinear-ai/substrate). We have adopted the upstream's migrations to [uv](https://github.com/astral-sh/uv) (replacing Poetry) and [Copier](https://copier.readthedocs.io/) (replacing Cookiecutter).
-
-Instead of a full upstream merge we cherry-pick, so the changelog cannot record
-provenance. What we took and what we left is recorded here instead.
-
-**Adopted:** Copier (substrate#320), the `uv_build` backend (substrate#324),
-`use_exec` for the API server (substrate#343, though upstream's version matches
-no case and silently runs nothing, so ours uses `bool(${dev})`), the
-`*.egg-info/` ignore (substrate#273), `check-illegal-windows-names`
-(substrate#284), the `uv` commitizen provider (substrate#293), the well-known
-`[project.urls]` labels, and the ruff formatter options.
-
-**Not adopted:**
-
-- **[ty](https://github.com/astral-sh/ty)** (substrate#321) — pre-1.0 with no
-  plugin system, and the template depends on the `pydantic.mypy` plugin. We
-  stay on Mypy.
-- Upstream's ruff ruleset, `testpaths = ["src", "tests"]`, and their Dockerfile
-  and docker-compose rewrites.
-- Dropping the `package` project type or the GitLab CI provider, both of which
-  we keep.
-
-**Ours, diverging from upstream:** no documentation generation (upstream keeps
-MkDocs), and no generated `LICENSE`.
-
 ## Template parameters
 
 | Parameter | Description |
