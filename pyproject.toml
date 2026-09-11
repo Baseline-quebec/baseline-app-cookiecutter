@@ -25,6 +25,10 @@ package = false
 # publishes a template change to generated projects.
 bump_message = "bump(release): v$current_version → v$new_version"
 tag_format = "v$version"
+# Set here rather than as a `cz bump` flag so a release tagged from a terminal
+# matches one tagged by the workflow. commitizen tags are lightweight by
+# default; v1.0.0 was created annotated by hand.
+annotated_tag = true
 # CHANGELOG.md uses commitizen's own `## vX.Y.Z (date)` headings rather than
 # Keep a Changelog's `## [X.Y.Z] - date`. That is what lets an incremental run
 # find where to stop, so a bump prepends one section instead of rewriting the
