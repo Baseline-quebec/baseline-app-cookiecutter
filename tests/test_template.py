@@ -1240,6 +1240,10 @@ class TestPinnedCiTooling:
         assert "uvx --from=commitizen cz check" in content
         assert "actions/setup-python" not in content
         assert "pip install" not in content
+        # The PR title is attacker-controlled: it must reach cz through the
+        # environment, never interpolated into the shell command.
+        assert 'PR_TITLE: ${{ github.event.pull_request.title }}' in content
+        assert 'cz check --message "$PR_TITLE"' in content
 
     def test_vscode_fix_on_save_is_ruff_scoped(self, output_dir: Path) -> None:
         """Fix-on-save is scoped to Python and to ruff's own code actions.

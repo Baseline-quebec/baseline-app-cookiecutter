@@ -12,6 +12,10 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v10
 
+      # The title is attacker-controlled, so it goes through the environment
+      # rather than being interpolated into the script.
       - name: Check PR title
+        env:
+          PR_TITLE: {% raw %}${{ github.event.pull_request.title }}{% endraw %}
         run: |
-          uvx --from=commitizen cz check --message "{% raw %}${{ github.event.pull_request.title }}{% endraw %}"
+          uvx --from=commitizen cz check --message "$PR_TITLE"
