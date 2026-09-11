@@ -83,8 +83,10 @@ Projects scaffolded before this template moved to Copier have a `.cruft.json` in
 
 | Command | Description |
 |---------|-------------|
-| `uv run --with copier --with pytest --with pyyaml pytest tests/ -v` | Run unit tests (~119 tests, ~35s) |
-| `pre-commit run --all-files` | Run linting on template code |
+| `uv sync` | Install the development environment |
+| `uv run pytest tests/ -v` | Run unit tests (~119 tests, ~35s) |
+| `uv run ruff check . && uv run ruff format --check .` | Lint this repository's own Python |
+| `pre-commit run --all-files` | Run all pre-commit hooks |
 
 ### CI/CD
 
@@ -92,7 +94,7 @@ This repository has three CI workflows:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| **CI** (`ci.yml`) | Push / PR | Runs unit tests on Python 3.12, 3.13 and 3.14 |
+| **CI** (`ci.yml`) | Push / PR | Runs unit tests on Python 3.12, 3.13 and 3.14, plus ruff |
 | **PR** (`pr.yml`) | PR | Validates PR title follows conventional commits |
 | **Integration** (`test.yml`) | Push / PR | Scaffolds a project, starts a devcontainer, runs `poe lint` + `poe test` (~3 min) |
 
@@ -101,6 +103,8 @@ This repository has three CI workflows:
 ```
 baseline-app-cookiecutter/
 ├── copier.yml                         # Template questions and computed values
+├── pyproject.toml                     # This repo's own tooling (uv, ruff, pytest)
+├── uv.lock
 ├── tests/
 │   └── test_template.py               # Unit tests for the template
 ├── template/                          # Everything below is rendered into the project

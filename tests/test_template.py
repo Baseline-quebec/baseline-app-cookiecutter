@@ -294,7 +294,7 @@ class TestDockerfile:
         """Dockerfile has exactly 3 stages: base, dev, app."""
         project = bake(output_dir)
         content = (project / "Dockerfile").read_text()
-        from_lines = [l.strip() for l in content.splitlines() if l.startswith("FROM")]
+        from_lines = [line.strip() for line in content.splitlines() if line.startswith("FROM")]
         assert len(from_lines) == 3
         assert "AS base" in from_lines[0]
         assert "AS dev" in from_lines[1]
@@ -423,7 +423,7 @@ class TestPoeTasks:
     """Verify poe tasks in pyproject.toml."""
 
     def test_poe_update_task(self, output_dir: Path) -> None:
-        """poe update task updates the project from its Copier template."""
+        """Poe update task updates the project from its Copier template."""
         project = bake(output_dir)
         content = (project / "pyproject.toml").read_text()
         assert "[tool.poe.tasks.update]" in content
@@ -447,20 +447,21 @@ class TestPoeTasks:
         assert api["control"]["expr"] == "bool(${dev})"
         assert len(api["switch"]) == 2
         assert all(case["use_exec"] for case in api["switch"])
-        dev, prod = (case for case in api["switch"] if case["case"] == "True"), (
-            case for case in api["switch"] if case["case"] == "False"
+        dev, prod = (
+            (case for case in api["switch"] if case["case"] == "True"),
+            (case for case in api["switch"] if case["case"] == "False"),
         )
         assert "uvicorn" in next(dev)["cmd"]
         assert "gunicorn" in next(prod)["cmd"]
 
     def test_poe_lint_task(self, output_dir: Path) -> None:
-        """poe lint task is present."""
+        """Poe lint task is present."""
         project = bake(output_dir)
         content = (project / "pyproject.toml").read_text()
         assert "[tool.poe.tasks.lint]" in content
 
     def test_poe_test_task(self, output_dir: Path) -> None:
-        """poe test task is present."""
+        """Poe test task is present."""
         project = bake(output_dir)
         content = (project / "pyproject.toml").read_text()
         assert "[tool.poe.tasks.test]" in content
@@ -561,20 +562,20 @@ class TestCodespell:
     """Verify codespell hook and configuration."""
 
     def test_codespell_in_pre_commit(self, output_dir: Path) -> None:
-        """codespell hook is present in pre-commit config."""
+        """Codespell hook is present in pre-commit config."""
         project = bake(output_dir)
         content = (project / ".pre-commit-config.yaml").read_text()
         assert "id: codespell" in content
         assert "entry: codespell" in content
 
     def test_codespell_dep_in_pyproject(self, output_dir: Path) -> None:
-        """codespell dependency is in test dependencies."""
+        """Codespell dependency is in test dependencies."""
         project = bake(output_dir)
         content = (project / "pyproject.toml").read_text()
         assert '"codespell>=2.4.0"' in content
 
     def test_codespell_config_in_pyproject(self, output_dir: Path) -> None:
-        """codespell configuration section exists in pyproject.toml."""
+        """Codespell configuration section exists in pyproject.toml."""
         import tomllib
 
         project = bake(output_dir)
@@ -665,13 +666,13 @@ class TestMkDocs:
         assert "mkdocs-material" in content
 
     def test_pdoc_absent(self, output_dir: Path) -> None:
-        """pdoc is not in dependencies."""
+        """Pdoc is not in dependencies."""
         project = bake(output_dir)
         content = (project / "pyproject.toml").read_text()
         assert "pdoc" not in content
 
     def test_poe_docs_uses_mkdocs(self, output_dir: Path) -> None:
-        """poe docs task uses mkdocs."""
+        """Poe docs task uses mkdocs."""
         project = bake(output_dir)
         content = (project / "pyproject.toml").read_text()
         assert "mkdocs" in content
@@ -801,9 +802,7 @@ class TestClaudeCodeConfig:
         import json
 
         project = bake(output_dir)
-        content = json.loads(
-            (project / ".claude" / "settings.local.json").read_text()
-        )
+        content = json.loads((project / ".claude" / "settings.local.json").read_text())
         assert "playwright" in content["enabledMcpjsonServers"]
 
     def test_gitignore_has_claude_settings(self, output_dir: Path) -> None:
@@ -925,7 +924,7 @@ class TestUvMigration:
         assert any(d.startswith("pydantic-settings") for d in deps)
 
     def test_tool_uv_default_groups(self, output_dir: Path) -> None:
-        """uv installs the test and dev groups by default."""
+        """Uv installs the test and dev groups by default."""
         import tomllib
 
         project = bake(output_dir)
@@ -933,7 +932,7 @@ class TestUvMigration:
         assert parsed["tool"]["uv"]["default-groups"] == ["test", "dev"]
 
     def test_poe_executor_is_simple(self, output_dir: Path) -> None:
-        """poe runs tasks in the active venv (simple), not via `uv run`.
+        """Poe runs tasks in the active venv (simple), not via `uv run`.
 
         Without this, poethepoet's auto executor triggers an implicit `uv sync`
         that reinstalls the editable project into the baked devcontainer venv and
@@ -1001,9 +1000,9 @@ class TestUvMigration:
         import json
 
         project = bake(output_dir)
-        allow = json.loads(
-            (project / ".claude" / "settings.json").read_text()
-        )["permissions"]["allow"]
+        allow = json.loads((project / ".claude" / "settings.json").read_text())["permissions"][
+            "allow"
+        ]
         assert "Bash(uv *)" in allow
         assert "Bash(poetry *)" not in allow
 
@@ -1025,11 +1024,12 @@ class TestLintCiConfig:
         import tomllib
 
         project = bake(output_dir, development_environment="strict")
-        ignore = tomllib.loads(
-            (project / "pyproject.toml").read_bytes().decode()
-        )["tool"]["ruff"]["lint"]["ignore"]
-        # RUF105: forces `# ruff: ignore` over `# noqa`. PLC0415: lazy imports.
-        # RUF201: rewrites rule codes to names in this very config.
+        ignore = tomllib.loads((project / "pyproject.toml").read_bytes().decode())["tool"]["ruff"][
+            "lint"
+        ]["ignore"]
+        # These preview rules churn: one forces a different suppression-comment
+        # syntax, one rewrites rule codes to names in this very config, and one
+        # flags the lazy imports the template makes on purpose.
         for rule in ("RUF105", "PLC0415", "RUF201"):
             assert rule in ignore
 
@@ -1038,9 +1038,9 @@ class TestLintCiConfig:
         import tomllib
 
         project = bake(output_dir, development_environment="simple")
-        ignore = tomllib.loads(
-            (project / "pyproject.toml").read_bytes().decode()
-        )["tool"]["ruff"]["lint"]["ignore"]
+        ignore = tomllib.loads((project / "pyproject.toml").read_bytes().decode())["tool"]["ruff"][
+            "lint"
+        ]["ignore"]
         for rule in ("RUF105", "PLC0415", "RUF201", "RUF100"):
             assert rule in ignore
 
@@ -1054,9 +1054,9 @@ class TestLintCiConfig:
         import tomllib
 
         project = bake(output_dir, development_environment="strict", with_fastapi_api=True)
-        filters = tomllib.loads(
-            (project / "pyproject.toml").read_bytes().decode()
-        )["tool"]["pytest"]["ini_options"]["filterwarnings"]
+        filters = tomllib.loads((project / "pyproject.toml").read_bytes().decode())["tool"][
+            "pytest"
+        ]["ini_options"]["filterwarnings"]
         assert any("StarletteDeprecationWarning" in f for f in filters)
 
     def test_no_starlette_filter_without_fastapi(self, output_dir: Path) -> None:
@@ -1068,19 +1068,19 @@ class TestLintCiConfig:
         import tomllib
 
         project = bake(output_dir, development_environment="strict", with_fastapi_api=False)
-        filters = tomllib.loads(
-            (project / "pyproject.toml").read_bytes().decode()
-        )["tool"]["pytest"]["ini_options"]["filterwarnings"]
+        filters = tomllib.loads((project / "pyproject.toml").read_bytes().decode())["tool"][
+            "pytest"
+        ]["ini_options"]["filterwarnings"]
         assert not any("starlette" in f for f in filters)
 
     def test_codespell_ignores_french_terms(self, output_dir: Path) -> None:
-        """codespell tolerates the French terms in CLAUDE.md's Agents IA section."""
+        """Codespell tolerates the French terms in CLAUDE.md's Agents IA section."""
         import tomllib
 
         project = bake(output_dir)
-        words = tomllib.loads(
-            (project / "pyproject.toml").read_bytes().decode()
-        )["tool"]["codespell"]["ignore-words-list"]
+        words = tomllib.loads((project / "pyproject.toml").read_bytes().decode())["tool"][
+            "codespell"
+        ]["ignore-words-list"]
         for term in ("projet", "architecte", "librairies"):
             assert term in words
 
@@ -1144,9 +1144,7 @@ class TestDocsWorkflow:
         import yaml
 
         project = bake(output_dir)
-        parsed = yaml.safe_load(
-            (project / ".github" / "workflows" / "docs.yml").read_text()
-        )
+        parsed = yaml.safe_load((project / ".github" / "workflows" / "docs.yml").read_text())
         assert parsed["permissions"]["pages"] == "write"
         assert parsed["permissions"]["id-token"] == "write"
         steps = parsed["jobs"]["build-and-deploy"]["steps"]
@@ -1263,7 +1261,7 @@ class TestPinnedCiTooling:
         assert "pip install" not in content
         # The PR title is attacker-controlled: it must reach cz through the
         # environment, never interpolated into the shell command.
-        assert 'PR_TITLE: ${{ github.event.pull_request.title }}' in content
+        assert "PR_TITLE: ${{ github.event.pull_request.title }}" in content
         assert 'cz check --message "$PR_TITLE"' in content
 
     def test_vscode_fix_on_save_is_ruff_scoped(self, output_dir: Path) -> None:
@@ -1275,9 +1273,9 @@ class TestPinnedCiTooling:
         import json
 
         project = bake(output_dir)
-        settings = json.loads(
-            (project / ".devcontainer" / "devcontainer.json").read_text()
-        )["customizations"]["vscode"]["settings"]
+        settings = json.loads((project / ".devcontainer" / "devcontainer.json").read_text())[
+            "customizations"
+        ]["vscode"]["settings"]
         assert "editor.codeActionsOnSave" not in settings
         actions = settings["[python]"]["editor.codeActionsOnSave"]
         assert actions["source.fixAll.ruff"] == "explicit"
