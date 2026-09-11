@@ -133,10 +133,6 @@ with_sentry:
   default: false
   when: "{{ with_fastapi_api }}"
 
-documentation_url:
-  when: false
-  default: https://{{ github_org | lower }}.github.io/{{ project_name_kebab_case }}
-
 project_type:
   when: false
   default: app

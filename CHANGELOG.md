@@ -29,6 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Removed
 
+- **Documentation generation.** No `mkdocs.yml`, no `mkdocs-material`
+  dependency, no `poe docs` task and no GitHub Pages workflow. Architecture
+  decision records stay as plain markdown under `docs/decisions/`; only the
+  site generator is gone.
 - This repository's AGPL-3.0 `LICENSE`, inherited from substrate before it
   relicensed to MIT
 - The generated `LICENSE` file. The `license` answer is still recorded as SPDX
@@ -36,11 +40,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- GitHub Pages workflow (`docs.yml`) that publishes the MkDocs site, plus the
-  `repo_url`, `repo_name`, `site_url` and pymdownx config it needs
-- MkDocs `strict` mode and link validation in strict development environments
 - Well-known `[project.urls]` labels (homepage, source, changelog,
-  releasenotes, documentation, issues)
+  releasenotes, issues)
 - `check-illegal-windows-names` pre-commit hook
 - `CLAUDE.md` template for AI-assisted development in generated projects
 - `pull_request_template.md` for the cookiecutter repo itself
@@ -50,7 +51,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Integration test matrix — full (FastAPI + Typer) and minimal (bare) variants
 - Cruft link verification step in integration tests
 - codespell linter in pre-commit and pyproject.toml
-- MkDocs Material for documentation (replaces pdoc)
 - PR title check workflow for generated projects (`pr.yml`)
 - `detect-secrets` (Yelp) pre-commit hook to block accidental credential commits
 - `actionlint` pre-commit hook for GitHub Actions validation
@@ -62,15 +62,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 - Conditionalized generated README sections (API, CLI, Docker) with Jinja
 - Rewrote root README with CI badges, project structure, and developer guide
-- Rewrote generated README: concise, dynamic, references MkDocs
+- Rewrote generated README: concise and dynamic
 - Modernized integration workflow: checkout v6, pip cache, renamed to "Integration"
 - Fixed generated CONTRIBUTING.md typos and added codespell to tools list
 - Fixed `.env.sample` reference to `.env.example` in generated README
 
 ### Fixed
 
-- `site/` and `*.egg-info/` were never git-ignored, so MkDocs and editable
-  install output landed in the first commit of every generated project
+- `*.egg-info/` was never git-ignored, so editable install output landed in the
+  first commit of every generated project
 - The API server never received SIGTERM: the container entrypoint ran the
   server behind a shell, so `docker stop` skipped graceful shutdown and waited
   out its timeout on every deploy

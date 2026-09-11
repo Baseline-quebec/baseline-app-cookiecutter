@@ -12,7 +12,6 @@ A modern [Copier](https://copier.readthedocs.io/) template for scaffolding Pytho
 - Task running with [Poe the Poet](https://github.com/nat-n/poethepoet)
 - Code formatting and linting with [Ruff](https://github.com/astral-sh/ruff), [Mypy](https://github.com/python/mypy), and [Pre-commit](https://pre-commit.com/)
 - Spell checking with [codespell](https://github.com/codespell-project/codespell)
-- Documentation with [MkDocs Material](https://squidfunk.github.io/mkdocs-material/)
 - Optional [Conventional Commits](https://www.conventionalcommits.org/) with [Commitizen](https://github.com/commitizen-tools/commitizen)
 - Optional [FastAPI](https://github.com/tiangolo/fastapi) REST API with health check, CRUD stubs, and Sentry integration
 - Optional [Typer](https://github.com/tiangolo/typer) CLI with Rich output
@@ -109,7 +108,7 @@ baseline-app-cookiecutter/
 │   └── test_template.py               # Unit tests for the template
 ├── template/                          # Everything below is rendered into the project
 │   ├── .devcontainer/                 # Dev Container config
-│   ├── .github/workflows/             # CI + docs + LLM scan for generated projects
+│   ├── .github/workflows/             # CI + LLM scan for generated projects
 │   ├── src/{{ project_name_snake_case }}/
 │   ├── tests/                         # Test stubs
 │   ├── pyproject.toml.jinja           # project config (uv)

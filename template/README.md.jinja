@@ -5,7 +5,6 @@
 ## Documentation
 
 - [Architecture Decision Records](docs/decisions/)
-- [MkDocs]({{ documentation_url }}/) (run `poe docs --serve` locally)
 
 ## Setup
 
@@ -68,7 +67,6 @@ uv run {{ project_name_kebab_case }} health
 ```bash
 poe test          # run tests
 poe lint          # run linting
-poe docs --serve  # serve documentation locally
 ```
 
 ## Project structure
@@ -86,7 +84,7 @@ poe docs --serve  # serve documentation locally
 │   ├── models.py                                      # Pydantic models
 │   └── services.py                                    # business logic
 ├── tests/                                             # test suite
-├── docs/                                              # MkDocs + ADRs
+├── docs/decisions/                                    # architecture decision records
 ├── pyproject.toml                                     # project config (uv)
 ├── Dockerfile                                         # production image
 └── docker-compose.yml                                 # local development

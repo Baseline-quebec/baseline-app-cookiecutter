@@ -635,51 +635,6 @@ class TestCheckoutVersion:
 
 
 # ---------------------------------------------------------------------------
-# Sprint 4: MkDocs Material tests
-# ---------------------------------------------------------------------------
-
-
-class TestMkDocs:
-    """Verify MkDocs Material replaces pdoc."""
-
-    def test_mkdocs_yml_exists(self, output_dir: Path) -> None:
-        """mkdocs.yml is generated."""
-        project = bake(output_dir)
-        assert (project / "mkdocs.yml").is_file()
-
-    def test_mkdocs_yml_has_project_name(self, output_dir: Path) -> None:
-        """mkdocs.yml contains the project name."""
-        project = bake(output_dir)
-        content = (project / "mkdocs.yml").read_text()
-        assert "test-project" in content
-
-    def test_mkdocs_material_dep(self, output_dir: Path) -> None:
-        """mkdocs-material is in dev dependencies."""
-        project = bake(output_dir)
-        content = (project / "pyproject.toml").read_text()
-        assert "mkdocs-material" in content
-
-    def test_pdoc_absent(self, output_dir: Path) -> None:
-        """Pdoc is not in dependencies."""
-        project = bake(output_dir)
-        content = (project / "pyproject.toml").read_text()
-        assert "pdoc" not in content
-
-    def test_poe_docs_uses_mkdocs(self, output_dir: Path) -> None:
-        """Poe docs task uses mkdocs."""
-        project = bake(output_dir)
-        content = (project / "pyproject.toml").read_text()
-        assert "mkdocs" in content
-        assert "[tool.poe.tasks.docs]" in content
-        assert "--serve" in content
-
-    def test_docs_index_md_exists(self, output_dir: Path) -> None:
-        """docs/index.md is generated."""
-        project = bake(output_dir)
-        assert (project / "docs" / "index.md").is_file()
-
-
-# ---------------------------------------------------------------------------
 # CLAUDE.md tests
 # ---------------------------------------------------------------------------
 
@@ -756,12 +711,6 @@ class TestReadmeConditional:
         content = (project / "README.md").read_text()
         assert ".env.example" in content
         assert ".env.sample" not in content
-
-    def test_readme_has_mkdocs(self, output_dir: Path) -> None:
-        """README references MkDocs."""
-        project = bake(output_dir)
-        content = (project / "README.md").read_text()
-        assert "poe docs" in content
 
 
 # ---------------------------------------------------------------------------
@@ -904,7 +853,7 @@ class TestUvMigration:
         # test group holds real test deps
         assert any(dep.startswith("pytest") for dep in groups["test"])
         # dev group holds tooling
-        assert any(dep.startswith("mkdocs-material") for dep in groups["dev"])
+        assert any(dep.startswith("ipykernel") for dep in groups["dev"])
 
     def test_runtime_deps_use_pep508(self, output_dir: Path) -> None:
         """Runtime dependencies are a PEP 508 list under [project], not a table."""
@@ -1093,11 +1042,6 @@ class TestLintCiConfig:
 class TestIgnoreFiles:
     """Verify that generated build output is ignored."""
 
-    def test_gitignore_ignores_mkdocs_site(self, output_dir: Path) -> None:
-        """`mkdocs build` writes site/, which must not be committed."""
-        project = bake(output_dir)
-        assert "site/" in (project / ".gitignore").read_text().splitlines()
-
     def test_gitignore_ignores_egg_info(self, output_dir: Path) -> None:
         """An editable install writes *.egg-info/, which must not be committed."""
         project = bake(output_dir)
@@ -1125,59 +1069,6 @@ class TestCrossPlatform:
         assert "git config --system --add safe.directory" in content
 
 
-class TestDocsWorkflow:
-    """Verify the GitHub Pages documentation workflow."""
-
-    def test_docs_workflow_exists(self, output_dir: Path) -> None:
-        """The template ships a workflow that publishes the MkDocs site."""
-        project = bake(output_dir)
-        assert (project / ".github" / "workflows" / "docs.yml").is_file()
-
-    def test_docs_workflow_valid_yaml(self, output_dir: Path) -> None:
-        """docs.yml is valid YAML with the permissions Pages needs."""
-        import yaml
-
-        project = bake(output_dir)
-        parsed = yaml.safe_load((project / ".github" / "workflows" / "docs.yml").read_text())
-        assert parsed["permissions"]["pages"] == "write"
-        assert parsed["permissions"]["id-token"] == "write"
-        steps = parsed["jobs"]["build-and-deploy"]["steps"]
-        assert any("mkdocs build" in step.get("run", "") for step in steps)
-        assert any("deploy-pages" in step.get("uses", "") for step in steps)
-
-    def test_docs_workflow_keeps_github_expressions(self, output_dir: Path) -> None:
-        """The page_url expression survives templating instead of rendering away."""
-        project = bake(output_dir)
-        content = (project / ".github" / "workflows" / "docs.yml").read_text()
-        assert "${{ steps.deployment.outputs.page_url }}" in content
-
-    def test_mkdocs_declares_repo_and_docs_url(self, output_dir: Path) -> None:
-        """mkdocs.yml points at the repository and its published site."""
-        import yaml
-
-        project = bake(output_dir, github_org="Baseline-quebec")
-        parsed = yaml.safe_load((project / "mkdocs.yml").read_text())
-        assert parsed["repo_url"] == "https://github.com/Baseline-quebec/test-project"
-        assert parsed["repo_name"] == "Baseline-quebec/test-project"
-        assert parsed["site_url"] == "https://baseline-quebec.github.io/test-project"
-        assert "pymdownx.superfences" in parsed["markdown_extensions"]
-
-    def test_mkdocs_strict_only_in_strict_mode(self, output_dir: Path) -> None:
-        """Strict mode fails the docs build on warnings; simple mode does not."""
-        import yaml
-
-        strict = yaml.safe_load(
-            (bake(output_dir / "s", development_environment="strict") / "mkdocs.yml").read_text()
-        )
-        simple = yaml.safe_load(
-            (bake(output_dir / "p", development_environment="simple") / "mkdocs.yml").read_text()
-        )
-        assert strict["strict"] is True
-        # Unlisted ADRs must not fail the build.
-        assert strict["validation"]["omitted_files"] == "info"
-        assert "strict" not in simple
-
-
 class TestProjectMetadata:
     """Verify [project.urls] and release tooling configuration."""
 
@@ -1193,7 +1084,6 @@ class TestProjectMetadata:
         assert urls["changelog"] == f"{base}/blob/main/CHANGELOG.md"
         assert urls["releasenotes"] == f"{base}/releases"
         assert urls["issues"] == f"{base}/issues"
-        assert urls["documentation"] == "https://baseline-quebec.github.io/test-project"
 
     def test_commitizen_version_provider_is_uv(self, output_dir: Path) -> None:
         """Commitizen bumps through uv, so uv.lock stays in step with the version."""

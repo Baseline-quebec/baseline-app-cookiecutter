@@ -36,7 +36,6 @@ homepage = "{{ project_url }}"
 source = "{{ project_url }}"
 changelog = "{{ project_url.rstrip('/') }}/blob/main/CHANGELOG.md"
 releasenotes = "{{ project_url.rstrip('/') }}/releases"
-documentation = "{{ documentation_url }}"
 issues = "{{ project_url.rstrip('/') }}/issues"
 {%- if with_typer_cli %}
 
@@ -82,7 +81,6 @@ test = [
 dev = [
   "ipykernel>=6.29.4",
   "ipywidgets>=8.1.2",
-  "mkdocs-material>=9.5.0",
 ]
 
 [tool.uv]  # https://docs.astral.sh/uv/reference/settings/
@@ -298,23 +296,6 @@ executor.type = "simple"
     name = "dev"
     options = ["--dev"]
 {%- endif %}
-
-  [tool.poe.tasks.docs]
-  help = "Build or serve the documentation"
-  shell = """
-    if [ $serve ]
-    then {
-      mkdocs serve
-    } else {
-      mkdocs build
-    } fi
-    """
-
-    [[tool.poe.tasks.docs.args]]
-    help = "Serve the documentation locally with live reload"
-    type = "boolean"
-    name = "serve"
-    options = ["--serve"]
 
   [tool.poe.tasks.lint]
   help = "Lint this {{ project_type }}"

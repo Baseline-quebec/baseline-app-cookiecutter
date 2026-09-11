@@ -21,7 +21,7 @@ This project follows the [Baseline development conventions](https://github.com/B
 ```
 src/{{ project_name_snake_case }}/   # source code (src layout)
 tests/                                              # test suite
-docs/                                               # MkDocs documentation + ADRs
+docs/decisions/                                     # architecture decision records
 pyproject.toml                                      # project config (uv), tool settings
 ```
 
@@ -33,7 +33,6 @@ Always use `uv run` to execute project commands so they run in the managed `.ven
 uv sync                   # install dependencies
 uv run poe lint           # ruff + mypy + pre-commit
 uv run poe test           # pytest with coverage
-uv run poe docs --serve   # serve MkDocs locally
 {%- if with_fastapi_api %}
 uv run poe api --dev      # start FastAPI dev server
 {%- endif %}
