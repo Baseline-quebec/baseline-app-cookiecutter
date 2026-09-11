@@ -191,6 +191,7 @@ ignore = [
     "PLC0415", # `import` should be at top-level. Lazy / conditional imports (e.g. optional Sentry) are intentional.
     "RUF105", # noqa-comments (preview). We suppress with `# noqa`; do not force the `# ruff: ignore` syntax.
     "RUF201", # rule-codes-in-selectors (preview). This config references rules by code (with comments), on purpose.
+    "TC003", # Move standard library import into a type-checking block. Target-version dependent: on 3.14 (PEP 649) ruff wants the import hoisted and the quotes removed, which then raises NameError on 3.12/3.13. One source cannot satisfy both.
 ]
 unfixable = ["ERA001", "F401", "F841", "T201", "T203"]
 {%- else %}
