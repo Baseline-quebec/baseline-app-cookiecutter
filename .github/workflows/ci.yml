@@ -18,14 +18,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # No `cache: pip`: this repository has no dependency manifest for
-      # setup-python to key a cache on.
-      - uses: actions/setup-python@v7
+      - name: Install uv
+        uses: astral-sh/setup-uv@v10.1.0
         with:
           python-version: ${{ matrix.python-version }}
+          enable-cache: true
 
-      - name: Install dependencies
-        run: pip install copier pytest pyyaml
-
+      # This repository has no dependency manifest, so the test dependencies
+      # are named here rather than resolved from a lock file.
       - name: Run tests
-        run: pytest tests/ -v
+        run: uv run --with copier --with pytest --with pyyaml pytest tests/ -v

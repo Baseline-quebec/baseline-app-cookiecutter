@@ -83,8 +83,7 @@ Projects scaffolded before this template moved to Copier have a `.cruft.json` in
 
 | Command | Description |
 |---------|-------------|
-| `pip install copier pytest pyyaml` | Install test dependencies |
-| `pytest tests/ -v` | Run unit tests (~100 tests, ~30s) |
+| `uv run --with copier --with pytest --with pyyaml pytest tests/ -v` | Run unit tests (~119 tests, ~35s) |
 | `pre-commit run --all-files` | Run linting on template code |
 
 ### CI/CD
