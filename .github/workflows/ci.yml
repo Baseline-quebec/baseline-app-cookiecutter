@@ -18,10 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
+      # No `cache: pip`: this repository has no dependency manifest for
+      # setup-python to key a cache on.
       - uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.python-version }}
-          cache: pip
 
       - name: Install dependencies
         run: pip install copier pytest pyyaml

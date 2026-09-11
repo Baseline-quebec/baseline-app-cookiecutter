@@ -1233,6 +1233,27 @@ class TestPinnedCiTooling:
         assert "@devcontainers/cli@latest" not in content
         assert "@devcontainers/cli@0.89.0" in content
 
+    def test_setup_uv_is_pinned_to_an_exact_version(self, output_dir: Path) -> None:
+        """setup-uv publishes no floating major tag past v7.
+
+        Its releases are well beyond that, so `@v10` looks current but does not
+        resolve and fails the job during setup.
+        """
+        import re as _re
+
+        project = bake(output_dir)
+        workflows = (project / ".github" / "workflows").glob("*.yml")
+        refs = [
+            ref
+            for wf in workflows
+            for ref in _re.findall(r"astral-sh/setup-uv@(\S+)", wf.read_text())
+        ]
+        assert refs, "expected at least one setup-uv reference"
+        for ref in refs:
+            assert _re.fullmatch(r"v\d+\.\d+\.\d+", ref), (
+                f"setup-uv must be pinned to an exact version, got {ref!r}"
+            )
+
     def test_pr_workflow_uses_uvx(self, output_dir: Path) -> None:
         """The PR title check runs commitizen through uvx, with no Python setup."""
         project = bake(output_dir, with_conventional_commits=True)

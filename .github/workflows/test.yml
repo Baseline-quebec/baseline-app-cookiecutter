@@ -35,7 +35,7 @@ jobs:
           path: repo
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v10
+        uses: astral-sh/setup-uv@v10.1.0
 
       - name: Scaffold Python project
         # `--vcs-ref=HEAD` renders the checked-out revision: without it, Copier
