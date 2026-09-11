@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [1.0.0] - 2026-09-11
+
+First tagged release, and the last of the Cookiecutter era: projects
+scaffolded from this tag use `cruft`/`cookiecutter` and a `.cruft.json`.
+
 ### Added
 
 - `CLAUDE.md` template for AI-assisted development in generated projects
