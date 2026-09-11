@@ -92,7 +92,7 @@ This repository has three CI workflows:
 
 | Workflow | Trigger | What it does |
 |----------|---------|-------------|
-| **CI** (`ci.yml`) | Push / PR | Runs unit tests on Python 3.12 + 3.13 (~20s) |
+| **CI** (`ci.yml`) | Push / PR | Runs unit tests on Python 3.12, 3.13 and 3.14 |
 | **PR** (`pr.yml`) | PR | Validates PR title follows conventional commits |
 | **Integration** (`test.yml`) | Push / PR | Scaffolds a project, starts a devcontainer, runs `poe lint` + `poe test` (~3 min) |
 

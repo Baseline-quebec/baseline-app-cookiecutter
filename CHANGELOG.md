@@ -38,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `CLAUDE.md` template for AI-assisted development in generated projects
 - `pull_request_template.md` for the cookiecutter repo itself
 - `CODEOWNERS` file (@davebulaval, @dpothier)
-- Fast CI workflow (`ci.yml`) — unit tests on Python 3.12 + 3.13 (~20s)
+- Fast CI workflow (`ci.yml`) — unit tests on Python 3.12, 3.13 and 3.14
 - PR title check workflow (`pr.yml`) — conventional commits validation
 - Integration test matrix — full (FastAPI + Typer) and minimal (bare) variants
 - Cruft link verification step in integration tests
